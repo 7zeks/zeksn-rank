@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Filmów - Tylko Ranking</title>
+    
+    <!-- Dodaj brakujące czcionki Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="xd.ico">
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Minimalny Header tylko dla podstrony -->
+        <header class="header">
+            <h1>🎬 Ranking Filmów</h1>
+            <p>Tylko ranking - <a href="index.html" style="color: var(--primary); text-decoration: none;">← Wróć do głównej strony</a></p>
+        </header>
+
+        <!-- Statystyki -->
+        <div class="stats-container"></div>
+
+        <!-- Tabela rankingowa -->
+        <section class="table-container">
+            <table id="rankingTable">
+                <thead>
+                    <tr>
+                        <th data-sort="user">👤 Użytkownik</th>
+                        <th data-sort="film">🎭 Film/Serial</th>
+                        <th data-sort="rating">⭐ Ocena</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dane będą wczytywane dynamicznie -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

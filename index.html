@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Filmów</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="xd.ico">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Nagłówek -->
+
+        <header class="header">
+            <h1>zksn</h1>
+            <p>Dodawaj oceny i przeglądaj ranking -
+       <a href="ranking.html" style="color: var(--primary); text-decoration: none;">📊 Tylko ranking</a>
+    </p>
+        </header>
+
+        <!-- Panel dodawania -->
+        <section id="panel">
+<div class="panel-step">
+    <label for="themeSelect">🎨 Motyw:</label>
+    <select id="themeSelect">
+        <option value="original">Oryginalny</option>
+        <option value="white">Biały</option>
+        <option value="blue">Niebieski</option>
+        <option value="purple">Fioletowy</option>
+        <option value="green">Zielony</option>
+        <option value="red">Czerwony</option>
+        <option value="orange">Pomarańczowy</option>
+    </select>
+</div>
+            <div class="panel-step">
+                <label for="userSelect">👤 Użytkownik:</label>
+                <select id="userSelect">
+                    <option value=""> wybierz użytkownika </option>
+                    <option value="zeku">zeku</option>
+                    <option value="pierozek">pierozek</option>
+                </select>
+            </div>
+
+            <div id="stepTitle" class="panel-step hidden">
+                <label for="movieTitle">🎭 Tytuł filmu:</label>
+                <input type="text" id="movieTitle" placeholder="Wpisz tytuł filmu/serialu...">
+                <button id="nextBtn">Dalej ➔</button>
+            </div>
+
+            <div id="stepRating" class="panel-step hidden">
+                <label for="ratingInput">⭐ Ocena:</label>
+                <input type="number" id="ratingInput" step="0.1" min="0" max="10" placeholder="0-10">
+                <span>lub</span>
+                <select id="ratingSelect"></select>
+                <button id="saveBtn">💾 Zapisz ocenę</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

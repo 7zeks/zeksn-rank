@@ -1883,4 +1883,3 @@ firebase.database().ref('.info/connected').on('value', (snapshot) => {
     }
 
 });
-

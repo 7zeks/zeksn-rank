@@ -6,6 +6,10 @@ const isRankingPage = window.location.pathname.includes('ranking.html') ||
 
 console.log('Strona:', isRankingPage ? 'RANKING' : 'GŁÓWNA');
 
+const dbRef = firebase.database().ref("ranking");
+const usersRef = firebase.database().ref("users");
+const restreamRef = firebase.database().ref("restream");
+
 // ----------------------------
 // FIREBASE CONFIG
 // ----------------------------
@@ -1881,4 +1885,5 @@ firebase.database().ref('.info/connected').on('value', (snapshot) => {
     } else {
         console.log('❌ Brak połączenia z Firebase');
     }
+
 });

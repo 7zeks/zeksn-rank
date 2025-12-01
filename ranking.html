@@ -7,22 +7,30 @@
     <title>Ranking Filmów - Tylko Ranking</title>
     
     <!-- Dodaj brakujące czcionki Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Akronim&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="xd.ico">
 </head>
 
+
+
 <body>
     <div class="container">
 
         <!-- Minimalny Header tylko dla podstrony -->
-        <header class="header">
-            <h1>🎬 Ranking Filmów</h1>
-            <p>Tylko ranking - <a href="index.html" style="color: var(--primary); text-decoration: none;">← Wróć do głównej strony</a></p>
-        </header>
+<header class="header">
+    <h1>Ranking Filmów</h1>
+    <p>...</p>
+</header>
+
+<div class="nav-container">
+    <a href="index.html" class="nav-button"> Główna</a>
+    <a href="ranking.html" class="nav-button active"> Ranking</a>
+    <a href="restream.html" class="nav-button"> Restream</a>
+</div>
 
         <!-- Statystyki -->
         <div class="stats-container"></div>
@@ -32,7 +40,6 @@
             <table id="rankingTable">
                 <thead>
                     <tr>
-                        <th data-sort="user">👤 Użytkownik</th>
                         <th data-sort="film">🎭 Film/Serial</th>
                         <th data-sort="rating">⭐ Ocena</th>
                     </tr>

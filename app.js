@@ -31,6 +31,7 @@ try {
 }
 
 const dbRef = firebase.database().ref("ranking");
+const usersRef = firebase.database().ref("users");
 
 // ----------------------------
 // SELECTORY / UI (tylko jeśli istnieją)
@@ -50,7 +51,7 @@ const headers = document.querySelectorAll("#rankingTable th");
 // STAN APLIKACJI
 // ----------------------------
 let data = [];
-let users = ['zeku', 'pierozek']; // Domyślni użytkownicy
+let users = []; // Pusta lista - użytkownicy będą ładowani z Firebase
 let currentSort = { key: "rating", dir: -1 };
 let currentUser = "";
 
@@ -69,23 +70,23 @@ function initApp() {
         setupEventListeners();
         setupThemeSelector(); 
         setupAddUserButton();
-        updateUserSelect();
         populateRatingSelect();
         hideRankingAndStatsOnMainPage();
     } else {
         console.log('Inicjalizacja strony rankingowej');
         // Na stronie rankingowej: theme selector i wyszukiwarka
         setupThemeSelector();
-        setupSearch(); // WYSZUKIWARKA TYLKO NA RANKINGU
+        setupSearch();
         setupEventListeners();
     }
     
-    loadInitialData();
+    // URUCHOM WSZYSTKIE LISTENERY OD RAZU
     setupFirebaseListeners();
+    loadInitialData();
 }
 
 // ----------------------------
-// OBSŁUGA UŻYTKOWNIKÓW (UPROSZCZONA)
+// OBSŁUGA UŻYTKOWNIKÓW
 // ----------------------------
 function setupAddUserButton() {
     if (isRankingPage) return;
@@ -133,8 +134,16 @@ function showManageUsersModal() {
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Aktualni użytkownicy:</span>
+                        <button id="refreshUsersBtn" style="padding: 6px 12px; font-size: 0.8rem; background: var(--primary);">
+                            🔄 Odśwież listę
+                        </button>
+                    </div>
                     <div class="users-list" id="usersList">
-                        <!-- Lista użytkowników zostanie wypełniona dynamicznie -->
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            ⌛ Ładowanie użytkowników...
+                        </div>
                     </div>
                     <div class="modal-actions" style="margin-top: 20px;">
                         <button id="closeManageUsers" class="btn-cancel">Zamknij</button>
@@ -145,18 +154,45 @@ function showManageUsersModal() {
     `;
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    populateUsersList();
+    
+    // Dodaj event listener dla przycisku odświeżania
+    const refreshBtn = document.getElementById('refreshUsersBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            console.log('Ręczne odświeżanie użytkowników');
+            reloadUsers();
+        });
+    }
+    
+    // ODŚWIEŻ LISTĘ UŻYTKOWNIKÓW PO OTWARCIU MODALA
+    setTimeout(() => {
+        populateUsersList();
+    }, 100);
+    
     setupManageUsersModalEvents();
 }
 
 function populateUsersList() {
     const usersList = document.getElementById('usersList');
-    if (!usersList) return;
+    if (!usersList) {
+        console.log('usersList nie znaleziony');
+        return;
+    }
+    
+    console.log('Aktualna lista użytkowników do wyświetlenia:', users);
     
     usersList.innerHTML = '';
     
     if (users.length === 0) {
-        usersList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Brak użytkowników</p>';
+        usersList.innerHTML = `
+            <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 1.1rem; margin-bottom: 10px;">Brak użytkowników</div>
+                <div style="font-size: 0.9rem; opacity: 0.7;">
+                    Kliknij "➕ Dodaj nowego użytkownika" aby dodać pierwszego użytkownika
+                </div>
+            </div>
+        `;
         return;
     }
     
@@ -182,7 +218,12 @@ function populateUsersList() {
         userName.style.fontWeight = '500';
         
         const moviesCount = document.createElement('span');
-        const userMovies = data.filter(item => item.user === user);
+        const userMovies = data.filter(item => {
+            if (item.ratings) {
+                return Object.keys(item.ratings).includes(user);
+            }
+            return item.user === user;
+        });
         moviesCount.textContent = `(${userMovies.length} filmów)`;
         moviesCount.style.color = 'var(--text-secondary)';
         moviesCount.style.fontSize = '0.9rem';
@@ -208,13 +249,17 @@ function populateUsersList() {
         deleteBtn.style.transition = 'all 0.2s ease';
         
         deleteBtn.addEventListener('mouseenter', () => {
-            deleteBtn.style.background = '#dc2626';
-            deleteBtn.style.transform = 'scale(1.05)';
+            if (!deleteBtn.disabled) {
+                deleteBtn.style.background = '#dc2626';
+                deleteBtn.style.transform = 'scale(1.05)';
+            }
         });
         
         deleteBtn.addEventListener('mouseleave', () => {
-            deleteBtn.style.background = 'var(--error)';
-            deleteBtn.style.transform = 'scale(1)';
+            if (!deleteBtn.disabled) {
+                deleteBtn.style.background = 'var(--error)';
+                deleteBtn.style.transform = 'scale(1)';
+            }
         });
         
         deleteBtn.addEventListener('click', () => {
@@ -227,6 +272,14 @@ function populateUsersList() {
             deleteBtn.style.background = 'var(--text-muted)';
             deleteBtn.style.cursor = 'not-allowed';
             deleteBtn.title = 'Nie można usunąć użytkownika z filmami';
+        }
+        
+        // Zablokuj usuwanie jeśli to ostatni użytkownik
+        if (users.length <= 1) {
+            deleteBtn.disabled = true;
+            deleteBtn.style.background = 'var(--text-muted)';
+            deleteBtn.style.cursor = 'not-allowed';
+            deleteBtn.title = 'Nie można usunąć ostatniego użytkownika';
         }
         
         userActions.appendChild(deleteBtn);
@@ -251,21 +304,29 @@ function deleteUser(userName, moviesCount) {
     
     if (!confirmDelete) return;
     
-    // Usuń użytkownika z listy
-    const userIndex = users.indexOf(userName);
-    if (userIndex > -1) {
-        users.splice(userIndex, 1);
-        updateUserSelect();
-        populateUsersList(); // Odśwież listę w modal
-        showNotification(`Usunięto użytkownika: ${userName}`, 'success');
-        
-        // Jeśli aktualnie wybrany użytkownik został usunięty, zresetuj selektor
-        if (userSelect && userSelect.value === userName) {
-            userSelect.value = '';
-            if (stepTitle) stepTitle.classList.add("hidden");
-            if (stepRating) stepRating.classList.add("hidden");
-        }
-    }
+    // Usuń użytkownika z Firebase
+    usersRef.child(userName).remove()
+        .then(() => {
+            // Usuń użytkownika z lokalnej listy po udanym usunięciu
+            const userIndex = users.indexOf(userName);
+            if (userIndex > -1) {
+                users.splice(userIndex, 1);
+                updateUserSelect();
+                populateUsersList(); // Odśwież listę w modal
+                showNotification(`Usunięto użytkownika: ${userName}`, 'success');
+                
+                // Jeśli aktualnie wybrany użytkownik został usunięty, zresetuj selektor
+                if (userSelect && userSelect.value === userName) {
+                    userSelect.value = '';
+                    if (stepTitle) stepTitle.classList.add("hidden");
+                    if (stepRating) stepRating.classList.add("hidden");
+                }
+            }
+        })
+        .catch(err => {
+            console.error("Error deleting user:", err);
+            showNotification("Błąd podczas usuwania użytkownika", 'error');
+        });
 }
 
 function setupManageUsersModalEvents() {
@@ -406,24 +467,71 @@ function addNewUser(userName) {
         return;
     }
     
-    // Dodaj użytkownika do lokalnej listy
-    users.push(normalizedName);
-    updateUserSelect();
-    showNotification(`Dodano użytkownika: ${userName}`, 'success');
-    console.log('Dodano użytkownika:', normalizedName);
+    // Dodaj użytkownika do Firebase
+    usersRef.child(normalizedName).set(true)
+        .then(() => {
+            // Dodaj do lokalnej listy po udanym zapisie
+            users.push(normalizedName);
+            updateUserSelect();
+            showNotification(`Dodano użytkownika: ${userName}`, 'success');
+            console.log('Dodano użytkownika:', normalizedName);
+            
+            // ODŚWIEŻ LISTĘ W MODALACH
+            const manageModal = document.getElementById('manageUsersModal');
+            if (manageModal) {
+                populateUsersList();
+            }
+        })
+        .catch(err => {
+            console.error("Error adding user:", err);
+            showNotification("Błąd podczas dodawania użytkownika", 'error');
+        });
+}
+
+// FUNKCJA DO WYMUSZENIA PRZEŁADOWANIA UŻYTKOWNIKÓW
+function reloadUsers() {
+    console.log('Wymuszone przeładowanie użytkowników...');
     
-    // Odśwież listę w modal jeśli jest otwarty
-    const manageModal = document.getElementById('manageUsersModal');
-    if (manageModal) {
-        populateUsersList();
-    }
+    usersRef.once("value", snapshot => {
+        if (snapshot.exists()) {
+            users = Object.keys(snapshot.val());
+            console.log('Przeładowano użytkowników:', users);
+            updateUserSelect();
+            
+            // Odśwież listę w modal jeśli jest otwarty
+            const manageModal = document.getElementById('manageUsersModal');
+            if (manageModal) {
+                populateUsersList();
+            }
+        } else {
+            console.log('Brak użytkowników po przeładowaniu');
+            users = [];
+            updateUserSelect();
+            
+            const manageModal = document.getElementById('manageUsersModal');
+            if (manageModal) {
+                populateUsersList();
+            }
+        }
+    });
 }
 
 function updateUserSelect() {
     if (!userSelect) return;
     
+    console.log('Aktualizacja selektora użytkowników. Dostępni użytkownicy:', users);
+    
     const currentSelected = userSelect.value;
     userSelect.innerHTML = '<option value=""> wybierz użytkownika </option>';
+    
+    if (users.length === 0) {
+        const noUsersOption = document.createElement('option');
+        noUsersOption.value = "";
+        noUsersOption.textContent = "brak użytkowników";
+        noUsersOption.disabled = true;
+        userSelect.appendChild(noUsersOption);
+        return;
+    }
     
     users.forEach(user => {
         const option = document.createElement('option');
@@ -676,8 +784,11 @@ function filterTable(searchTerm) {
     
     const filteredData = data.filter(item => 
         item.film.toLowerCase().includes(searchTerm) ||
-        item.user.toLowerCase().includes(searchTerm) ||
-        item.rating.toString().includes(searchTerm)
+        (item.ratings && Object.keys(item.ratings).some(user => 
+            user.toLowerCase().includes(searchTerm)
+        )) ||
+        (item.avgRating && item.avgRating.toString().includes(searchTerm)) ||
+        (item.rating && item.rating.toString().includes(searchTerm))
     );
     
     renderFilteredTable(filteredData);
@@ -782,7 +893,7 @@ function handleNextStep() {
 }
 
 // ----------------------------
-// ZAPISYWANIE OCENY
+// ZAPISYWANIE OCENY - AUTOMATYCZNE ŁĄCZENIE DUPLIKATÓW
 // ----------------------------
 async function handleSaveRating() {
     const user = userSelect ? userSelect.value : "";
@@ -799,32 +910,122 @@ async function handleSaveRating() {
         return; 
     }
 
-    const existingEntry = data.find(item => item.user === user && item.film.toLowerCase() === film.toLowerCase());
+    // NORMALIZUJ TYTUŁ FILMU DLA PORÓWNANIA
+    const normalizedFilm = film.toLowerCase().trim();
     
-    if (existingEntry) {
-        const confirmUpdate = confirm(`Film "${film}" już istnieje z oceną ${existingEntry.rating}. Czy chcesz zaktualizować ocenę?`);
-        if (!confirmUpdate) return;
+    try {
+        // SPRAWDŹ CZY FILM JUŻ ISTNIEJE (POPRZEZ PRZESZUKANIE)
+        const snapshot = await dbRef.once('value');
+        let existingFilmKey = null;
+        let existingFilmData = null;
+        let duplicates = [];
         
-        try {
-            await dbRef.child(existingEntry.id).update({ rating: rating.toString() });
-            showNotification(`Zaktualizowano ocenę "${film}" na ${rating}`, 'success');
-        } catch (err) {
-            console.error("Update error:", err);
-            showNotification("Błąd podczas aktualizacji", 'error');
-            return;
+        if (snapshot.exists()) {
+            snapshot.forEach(childSnapshot => {
+                const filmData = childSnapshot.val();
+                // PORÓWNAJ ZNORMALIZOWANE TYTUŁY
+                const existingNormalizedTitle = filmData.film.toLowerCase().trim();
+                if (existingNormalizedTitle === normalizedFilm) {
+                    if (!existingFilmKey) {
+                        // Pierwsze znalezione wystąpienie - traktuj jako główne
+                        existingFilmKey = childSnapshot.key;
+                        existingFilmData = filmData;
+                    } else {
+                        // Kolejne wystąpienie - to duplikat
+                        duplicates.push({
+                            key: childSnapshot.key,
+                            data: filmData
+                        });
+                    }
+                }
+            });
         }
-    } else {
-        try {
-            await dbRef.push({ user, film, rating: rating.toString() });
+        
+        // JEŚLI ZNALEZIONO DUPLIKATY - AUTOMATYCZNIE JE POŁĄCZ
+        if (duplicates.length > 0) {
+            console.log(`Znaleziono ${duplicates.length} duplikatów dla filmu "${film}"`);
+            await mergeSpecificDuplicates(existingFilmKey, existingFilmData, duplicates);
+        }
+        
+        if (existingFilmKey && existingFilmData) {
+            // Film istnieje - dodaj/aktualizuj ocenę użytkownika
+            const filmRef = dbRef.child(existingFilmKey);
+            const userRatings = existingFilmData.ratings || {};
+            userRatings[user] = rating.toString();
+            
+            // Oblicz nową średnią
+            const ratingsArray = Object.values(userRatings).map(r => parseFloat(r));
+            const avgRating = ratingsArray.reduce((sum, r) => sum + r, 0) / ratingsArray.length;
+            
+            await filmRef.update({
+                ratings: userRatings,
+                avgRating: avgRating.toFixed(1),
+                film: existingFilmData.film // Zachowaj oryginalną nazwę filmu
+            });
+            
+            showNotification(`Zaktualizowano ocenę "${existingFilmData.film}" na ${rating}`, 'success');
+        } else {
+            // Nowy film - utwórz znormalizowany klucz
+            const filmKey = normalizedFilm.replace(/[^a-z0-9]/g, '_');
+            const userRatings = { [user]: rating.toString() };
+            
+            await dbRef.child(filmKey).set({
+                film: film, // Zachowaj oryginalną pisownię
+                ratings: userRatings,
+                avgRating: rating.toFixed(1),
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
             showNotification(`Dodano film "${film}" z oceną ${rating}`, 'success');
-        } catch (err) {
-            console.error("Save error:", err);
-            showNotification("Błąd zapisu", 'error');
-            return;
         }
+    } catch (err) {
+        console.error("Save error:", err);
+        showNotification("Błąd zapisu", 'error');
+        return;
     }
 
     resetForm();
+}
+
+// FUNKCJA DO AUTOMATYCZNEGO ŁĄCZENIA KONKRETNYCH DUPLIKATÓW
+async function mergeSpecificDuplicates(mainKey, mainData, duplicates) {
+    console.log('Automatyczne łączenie duplikatów...');
+    
+    const mainRef = dbRef.child(mainKey);
+    let mergedRatings = { ...mainData.ratings };
+    
+    // Połącz wszystkie oceny z duplikatów
+    for (const duplicate of duplicates) {
+        const duplicateRatings = duplicate.data.ratings || {};
+        
+        // Dodaj oceny z duplikatu do głównego filmu
+        Object.keys(duplicateRatings).forEach(user => {
+            if (!mergedRatings[user] || duplicate.key !== mainKey) {
+                mergedRatings[user] = duplicateRatings[user];
+            }
+        });
+        
+        console.log(`Połączono oceny z duplikatu: ${duplicate.data.film}`);
+    }
+    
+    // Oblicz nową średnią
+    const ratingsArray = Object.values(mergedRatings).map(r => parseFloat(r));
+    const avgRating = ratingsArray.reduce((sum, r) => sum + r, 0) / ratingsArray.length;
+    
+    // Zaktualizuj główny film
+    await mainRef.update({
+        ratings: mergedRatings,
+        avgRating: avgRating.toFixed(1)
+    });
+    
+    // Usuń duplikaty (tylko jeśli mają różne klucze)
+    for (const duplicate of duplicates) {
+        if (duplicate.key !== mainKey) {
+            await dbRef.child(duplicate.key).remove();
+            console.log(`Usunięto duplikat: ${duplicate.key}`);
+        }
+    }
+    
+    console.log(`Automatycznie połączono ${duplicates.length} duplikatów dla "${mainData.film}"`);
 }
 
 function resetForm() {
@@ -866,11 +1067,7 @@ function createRow(item) {
     const tr = document.createElement("tr");
     tr.dataset.id = item.id;
 
-    const tdUser = document.createElement("td");
-    tdUser.textContent = item.user;
-    tdUser.className = "user-cell editable";
-    tdUser.addEventListener("click", () => startEdit(item, 'user', tdUser));
-
+    // USUŃ KOLUMNĘ UŻYTKOWNIKA - pokazujemy tylko film i średnią
     const tdFilm = document.createElement("td");
     tdFilm.className = "film-cell";
     
@@ -917,31 +1114,121 @@ function createRow(item) {
     tdFilm.appendChild(filmContainer);
 
     const tdRating = document.createElement("td");
-    tdRating.className = `rating-cell ${getRatingClass(item.rating)} editable`;
-    const ratingValue = Number.isFinite(item.rating) ? item.rating : 0;
+    const avgRating = item.avgRating || item.rating;
+    tdRating.className = `rating-cell ${getRatingClass(parseFloat(avgRating))}`;
+    const ratingValue = Number.isFinite(parseFloat(avgRating)) ? parseFloat(avgRating) : 0;
     
-    tdRating.innerHTML = `<span class="rating-number">${ratingValue.toFixed(1)}</span>`;
-    tdRating.addEventListener("click", () => startEdit(item, 'rating', tdRating));
+    // Pokazuj średnią i liczbę ocen
+    const ratingsCount = item.ratings ? Object.keys(item.ratings).length : 1;
+    tdRating.innerHTML = `
+        <span class="rating-number">${ratingValue.toFixed(1)}</span>
+        <div class="rating-details" style="font-size: 0.8rem; opacity: 0.7;">
+            (${ratingsCount} ${ratingsCount === 1 ? 'głos' : ratingsCount < 5 ? 'głosy' : 'głosów'})
+        </div>
+    `;
 
-    tr.appendChild(tdUser);
     tr.appendChild(tdFilm);
     tr.appendChild(tdRating);
 
-    // Zachowaj kontekstowe menu...
+    // Kontekstowe menu pokazujące szczegóły ocen
     tr.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        if (!confirm(`Czy na pewno chcesz usunąć "${item.film}" (${item.user})?`)) return;
-        tr.classList.add("selected-right");
-        dbRef.child(item.id).remove()
-            .then(() => showNotification(`Usunięto "${item.film}"`, 'success'))
-            .catch(err => {
-                console.error("Remove error:", err);
-                showNotification("Błąd podczas usuwania", 'error');
-            });
+        showRatingDetails(item);
     });
 
     return tr;
 }
+
+function showRatingDetails(item) {
+    const ratings = item.ratings || { [item.user]: item.rating };
+    
+    let detailsHTML = '<div style="padding: 10px 0;">';
+    detailsHTML += '<strong>Szczegóły ocen:</strong><br><br>';
+    
+    Object.entries(ratings).forEach(([user, rating]) => {
+        detailsHTML += `
+            <div class="rating-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: var(--surface-light); border-radius: 2px;">
+                <div>
+                    <strong>${user}:</strong> ${parseFloat(rating).toFixed(1)}
+                </div>
+                <div class="rating-actions" style="display: flex; gap: 5px;">
+                    <button class="btn-edit-rating" data-user="${user}" style="padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 0.8rem;">✏️</button>
+                    <button class="btn-delete-rating" data-user="${user}" style="padding: 4px 8px; background: var(--error); color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 0.8rem;">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    detailsHTML += `</div>`;
+    
+    const modalHTML = `
+        <div id="ratingDetailsModal" class="modal-overlay">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3> Oceny dla ${item.film}</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    ${detailsHTML}
+                    <div class="modal-actions">
+                        <button id="closeRatingDetails" class="btn-cancel">Zamknij</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    const modal = document.getElementById('ratingDetailsModal');
+    const closeBtn = modal.querySelector('.modal-close');
+    const closeDetails = modal.querySelector('#closeRatingDetails');
+    
+    // Dodaj event listeners dla przycisków edycji i usuwania
+    const editButtons = modal.querySelectorAll('.btn-edit-rating');
+    const deleteButtons = modal.querySelectorAll('.btn-delete-rating');
+    
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const user = btn.dataset.user;
+            editUserRating(item, user, ratings[user]);
+        });
+    });
+    
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const user = btn.dataset.user;
+            deleteUserRating(item, user);
+        });
+    });
+    
+    const closeModal = () => {
+        modal.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 300);
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    closeDetails.addEventListener('click', closeModal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape' && modal) {
+            closeModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
 // ----------------------------
 // EDYCJA POZYCJI W RANKINGU
 // ----------------------------
@@ -1078,6 +1365,98 @@ function createEditActions(item, field, inputElement, cell, originalValue) {
     return actions;
 }
 
+function editUserRating(item, user, currentRating) {
+    const modal = document.getElementById('ratingDetailsModal');
+    
+    const editHTML = `
+        <div id="editRatingModal" class="modal-overlay">
+            <div class="modal-content" style="max-width: 300px;">
+                <div class="modal-header">
+                    <h3>✏️ Edytuj ocenę</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-input-group">
+                        <label for="editRatingValue">Ocena użytkownika <strong>${user}</strong> dla "${item.film}":</label>
+                        <input type="number" id="editRatingValue" value="${currentRating}" step="0.1" min="0" max="10" style="width: 100%;">
+                    </div>
+                    <div class="modal-actions">
+                        <button id="cancelEditRating" class="btn-cancel">Anuluj</button>
+                        <button id="saveEditRating" class="btn-confirm">💾 Zapisz</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', editHTML);
+    
+    const editModal = document.getElementById('editRatingModal');
+    const closeBtn = editModal.querySelector('.modal-close');
+    const cancelBtn = editModal.querySelector('#cancelEditRating');
+    const saveBtn = editModal.querySelector('#saveEditRating');
+    const ratingInput = editModal.querySelector('#editRatingValue');
+    
+    const closeEditModal = () => {
+        editModal.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+            if (editModal.parentNode) {
+                editModal.remove();
+            }
+        }, 300);
+    };
+    
+    const saveEdit = () => {
+        const newRating = parseFloat(ratingInput.value);
+        
+        if (isNaN(newRating) || newRating < 0 || newRating > 10) {
+            showNotification('Podaj poprawną ocenę (0-10)', 'error');
+            return;
+        }
+        
+        updateUserRating(item, user, newRating);
+        closeEditModal();
+        // Zamknij też główny modal szczegółów
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.remove();
+                }
+            }, 300);
+        }
+    };
+    
+    closeBtn.addEventListener('click', closeEditModal);
+    cancelBtn.addEventListener('click', closeEditModal);
+    saveBtn.addEventListener('click', saveEdit);
+    
+    ratingInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveEdit();
+        }
+    });
+    
+    editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+    
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape' && editModal) {
+            closeEditModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    setTimeout(() => {
+        ratingInput.focus();
+        ratingInput.select();
+    }, 100);
+}
+
 function updateItem(item, field, newValue) {
     const updates = {};
     updates[field] = field === 'rating' ? newValue.toString() : newValue;
@@ -1091,6 +1470,7 @@ function updateItem(item, field, newValue) {
             showNotification("Błąd podczas aktualizacji", 'error');
         });
 }
+
 
 function restoreCell(cell, field, value, item) {
     if (field === 'rating') {
@@ -1109,9 +1489,7 @@ function restoreCell(cell, field, value, item) {
 }
 
 function getRatingClass(rating) {
-    if (rating >= 8) return 'rating-high';
-    if (rating >= 6) return 'rating-medium';
-    return 'rating-low';
+    return 'rating-high';
 }
 
 function renderFullTable() {
@@ -1142,15 +1520,44 @@ function updateStats() {
     let statsContainer = document.querySelector('.stats-container');
     if (!statsContainer) return;
     
-    let statsHTML = `<div class="stats-container"><div class="stat"><span class="stat-value">${data.length}</span><span class="stat-label">Wszystkie filmy</span></div>`;
-    const users = [...new Set(data.map(item => item.user))];
-    users.forEach(user => {
-        const userMovies = data.filter(item => item.user === user);
-        const avgRating = userMovies.reduce((sum, item) => sum + item.rating, 0) / userMovies.length;
-        statsHTML += `<div class="stat"><span class="stat-value">${userMovies.length}</span><span class="stat-label">${user} (śr: ${avgRating.toFixed(1)})</span></div>`;
+    const totalMovies = data.length;
+    const totalRatings = data.reduce((sum, item) => {
+        return sum + (item.ratings ? Object.keys(item.ratings).length : 1);
+    }, 0);
+    
+    let statsHTML = `
+        <div class="stats-container">
+            <div class="stat"><span class="stat-value">${totalMovies}</span><span class="stat-label">Wszystkie filmy</span></div>
+            <div class="stat"><span class="stat-value">${totalRatings}</span><span class="stat-label">Wszystkie oceny</span></div>
+    `;
+    
+    // Statystyki użytkowników
+    const userStats = {};
+    data.forEach(item => {
+        if (item.ratings) {
+            Object.keys(item.ratings).forEach(user => {
+                if (!userStats[user]) {
+                    userStats[user] = { count: 0, sum: 0 };
+                }
+                userStats[user].count++;
+                userStats[user].sum += parseFloat(item.ratings[user]);
+            });
+        } else {
+            // Dla starych danych
+            if (!userStats[item.user]) {
+                userStats[item.user] = { count: 0, sum: 0 };
+            }
+            userStats[item.user].count++;
+            userStats[item.user].sum += item.rating;
+        }
     });
+    
+    Object.entries(userStats).forEach(([user, stats]) => {
+        const avgRating = stats.sum / stats.count;
+        statsHTML += `<div class="stat"><span class="stat-value">${stats.count}</span><span class="stat-label">${user} (śr: ${avgRating.toFixed(1)})</span></div>`;
+    });
+    
     statsHTML += `</div>`;
-
     statsContainer.outerHTML = statsHTML;
 }
 
@@ -1186,16 +1593,14 @@ function handleSort(header) {
 
 function applyCurrentSortArray(arr) {
     return arr.sort((a, b) => {
-        let valueA, valueB;
-        
         if (currentSort.key === "rating") {
-            valueA = a.rating;
-            valueB = b.rating;
-            return (valueA - valueB) * currentSort.dir;
+            const ratingA = a.avgRating || a.rating || 0;
+            const ratingB = b.avgRating || b.rating || 0;
+            return (ratingA - ratingB) * currentSort.dir;
+        } else if (currentSort.key === "film") {
+            return a.film.localeCompare(b.film) * currentSort.dir;
         } else {
-            valueA = (a[currentSort.key] || "").toString().toLowerCase();
-            valueB = (b[currentSort.key] || "").toString().toLowerCase();
-            return valueA.localeCompare(valueB) * currentSort.dir;
+            return currentSort.dir;
         }
     });
 }
@@ -1206,9 +1611,53 @@ function applyCurrentSortArray(arr) {
 function setupFirebaseListeners() {
     console.log('Setup Firebase listeners');
     
+    // LISTENER DLA ZMIAN UŻYTKOWNIKÓW W CZASIE RZECZYWISTYM
+    usersRef.on("value", snapshot => {
+        if (snapshot.exists()) {
+            const newUsers = Object.keys(snapshot.val());
+            console.log('Aktualizacja użytkowników (live):', newUsers);
+            users = newUsers;
+            updateUserSelect();
+            
+            // Odśwież listę w modal jeśli jest otwarty
+            const manageModal = document.getElementById('manageUsersModal');
+            if (manageModal) {
+                populateUsersList();
+            }
+        } else {
+            console.log('Brak użytkowników w Firebase');
+            users = [];
+            updateUserSelect();
+            
+            // Odśwież listę w modal jeśli jest otwarty
+            const manageModal = document.getElementById('manageUsersModal');
+            if (manageModal) {
+                populateUsersList();
+            }
+        }
+    });
+
+    // Reszta listenerów dla filmów
     dbRef.on("child_added", snapshot => {
         const v = snapshot.val();
-        const item = { id: snapshot.key, user: v.user, film: v.film, rating: parseFloat(v.rating)||0 };
+        let item;
+        
+        if (v.ratings) {
+            item = { 
+                id: snapshot.key, 
+                film: v.film, 
+                ratings: v.ratings,
+                avgRating: parseFloat(v.avgRating) || 0
+            };
+        } else {
+            item = {
+                id: snapshot.key,
+                film: v.film,
+                ratings: { [v.user]: v.rating.toString() },
+                avgRating: parseFloat(v.rating) || 0
+            };
+        }
+        
         if (!data.find(d=>d.id===item.id)) { 
             data.push(item); 
             renderFullTable(); 
@@ -1218,17 +1667,29 @@ function setupFirebaseListeners() {
     dbRef.on("child_changed", snapshot => {
         const v = snapshot.val(), id = snapshot.key, idx = data.findIndex(x=>x.id===id);
         if(idx>=0){ 
-            data[idx]={...data[idx], ...v, rating:parseFloat(v.rating)||0}; 
+            if (v.ratings) {
+                data[idx] = {
+                    ...data[idx],
+                    film: v.film,
+                    ratings: v.ratings,
+                    avgRating: parseFloat(v.avgRating) || 0
+                };
+            } else {
+                data[idx] = {
+                    ...data[idx],
+                    film: v.film,
+                    ratings: { [v.user]: v.rating.toString() },
+                    avgRating: parseFloat(v.rating) || 0
+                };
+            }
             renderFullTable(); 
         }
     });
 
     dbRef.on("child_removed", snapshot => {
         const id = snapshot.key;
-        data = data.filter(x=>x.id!==id);
-        const tr = tbody ? tbody.querySelector(`tr[data-id="${id}"]`) : null;
-        if(tr) tr.remove();
-        updateStats();
+        data = data.filter(item => item.id !== id);
+        renderFullTable();
     });
 }
 
@@ -1238,16 +1699,116 @@ function loadInitialData() {
         if(snapshot.exists() && data.length===0){
             data=[];
             snapshot.forEach(s=>{
-                const v=s.val();
-                data.push({id:s.key,user:v.user,film:v.film,rating:parseFloat(v.rating)||0});
+                const v = s.val();
+                // SPRAWDŹ CZY TO STARA CZY NOWA STRUKTURA
+                if (v.ratings) {
+                    // NOWA STRUKTURA - film z wieloma ocenami
+                    data.push({
+                        id: s.key, 
+                        film: v.film, 
+                        ratings: v.ratings,
+                        avgRating: parseFloat(v.avgRating) || 0
+                    });
+                } else {
+                    // STARA STRUKTURA - pojedyncza ocena
+                    // KONWERTUJ NA NOWĄ STRUKTURĘ
+                    const ratings = { [v.user]: v.rating.toString() };
+                    data.push({
+                        id: s.key, 
+                        film: v.film, 
+                        ratings: ratings,
+                        avgRating: parseFloat(v.rating) || 0
+                    });
+                    
+                    // ZAPISZ JAKO NOWĄ STRUKTURĘ W FIREBASE
+                    const filmRef = dbRef.child(s.key);
+                    filmRef.update({
+                        ratings: ratings,
+                        avgRating: parseFloat(v.rating).toFixed(1)
+                    });
+                }
             });
-            console.log('Załadowano danych:', data.length);
+            console.log('Załadano danych:', data.length);
             renderFullTable();
         } else {
             console.log('Brak danych lub dane już załadowane');
         }
     });
 }
+
+function updateUserRating(item, user, newRating) {
+    const filmRef = dbRef.child(item.id);
+    const updatedRatings = { ...item.ratings };
+    updatedRatings[user] = newRating.toString();
+    
+    // Oblicz nową średnią
+    const ratingsArray = Object.values(updatedRatings).map(r => parseFloat(r));
+    const avgRating = ratingsArray.reduce((sum, r) => sum + r, 0) / ratingsArray.length;
+    
+    filmRef.update({
+        ratings: updatedRatings,
+        avgRating: avgRating.toFixed(1)
+    })
+    .then(() => {
+        showNotification(`Zaktualizowano ocenę użytkownika ${user} na ${newRating}`, 'success');
+    })
+    .catch(err => {
+        console.error("Update rating error:", err);
+        showNotification("Błąd podczas aktualizacji oceny", 'error');
+    });
+}
+
+function deleteUserRating(item, user) {
+    const confirmDelete = confirm(`Czy na pewno chcesz usunąć ocenę użytkownika ${user} dla filmu "${item.film}"?`);
+    
+    if (!confirmDelete) return;
+    
+    const filmRef = dbRef.child(item.id);
+    const updatedRatings = { ...item.ratings };
+    delete updatedRatings[user];
+    
+    // Jeśli nie ma już żadnych ocen, usuń cały film
+    if (Object.keys(updatedRatings).length === 0) {
+        filmRef.remove()
+            .then(() => {
+                showNotification(`Usunięto wszystkie oceny i film "${item.film}"`, 'success');
+            })
+            .catch(err => {
+                console.error("Delete film error:", err);
+                showNotification("Błąd podczas usuwania filmu", 'error');
+            });
+        return;
+    }
+    
+    // Oblicz nową średnią
+    const ratingsArray = Object.values(updatedRatings).map(r => parseFloat(r));
+    const avgRating = ratingsArray.reduce((sum, r) => sum + r, 0) / ratingsArray.length;
+    
+    filmRef.update({
+        ratings: updatedRatings,
+        avgRating: avgRating.toFixed(1)
+    })
+    .then(() => {
+        showNotification(`Usunięto ocenę użytkownika ${user}`, 'success');
+        
+        // Zamknij modal szczegółów
+        const modal = document.getElementById('ratingDetailsModal');
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.remove();
+                }
+            }, 300);
+        }
+    })
+    .catch(err => {
+        console.error("Delete rating error:", err);
+        showNotification("Błąd podczas usuwania oceny", 'error');
+    });
+}
+
+
 
 // ----------------------------
 // POMOCNICZE
@@ -1307,4 +1868,17 @@ function populateRatingSelect() {
 document.addEventListener('DOMContentLoaded',()=>{
     console.log('DOM załadowany');
     initApp();
+});
+
+// Debugowanie Firebase
+console.log('🔥 Firebase Users Ref:', usersRef.toString());
+console.log('🔥 Firebase DB Ref:', dbRef.toString());
+
+// Sprawdź czy Firebase działa
+firebase.database().ref('.info/connected').on('value', (snapshot) => {
+    if (snapshot.val() === true) {
+        console.log('✅ Połączono z Firebase');
+    } else {
+        console.log('❌ Brak połączenia z Firebase');
+    }
 });

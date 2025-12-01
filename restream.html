@@ -150,12 +150,14 @@
                 deleteBtn.className = 'restream-delete-btn';
                 deleteBtn.title = 'Usuń stronę';
                 deleteBtn.addEventListener('click', () => {
-                    if (confirm(`Usunąć "${site.name || '[bez nazwy]'}"?`)) {
-                        sites.splice(index, 1);
-                        saveSites();
-                        renderRows();
-                    }
-                });
+                sites.splice(index, 1);
+                saveSites();
+                renderRows();
+    
+                if (window.showNotification) {
+                    window.showNotification(`Usunięto: ${site.name || '[bez nazwy]'}`, 'success');
+    }
+});
                 
                 row.appendChild(nameContainer);
                 row.appendChild(urlInput);
@@ -201,4 +203,5 @@
     });
     </script>
 </body>
+
 </html>

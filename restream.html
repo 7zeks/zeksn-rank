@@ -16,20 +16,20 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Restream</h1>
-            <p>...</p>
+            <h1>📺 Restream</h1>
+            <p>Zarządzaj linkami do stron streamingowych <span id="syncStatus" style="font-size: 0.8rem; opacity: 0.7;"></span></p>
         </header>
 
         <div class="nav-container">
-            <a href="index.html" class="nav-button"> Strona Główna</a>
-            <a href="ranking.html" class="nav-button"> Ranking Filmów</a>
-            <a href="restream.html" class="nav-button active"> Restream</a>
+            <a href="index.html" class="nav-button">🏠 Strona Główna</a>
+            <a href="ranking.html" class="nav-button">📊 Ranking Filmów</a>
+            <a href="restream.html" class="nav-button active">🎬 Restream</a>
         </div>
 
         <div class="restream-table">
             <div class="restream-header-row">
                 <div>Nazwa strony</div>
-                <div>Link</div>
+                <div>Link (edytuj)</div>
                 <div>Akcja</div>
             </div>
 
@@ -61,14 +61,86 @@
     document.addEventListener('DOMContentLoaded', function() {
         const addButton = document.getElementById('addRestreamRow');
         const rowsContainer = document.getElementById('restreamRows');
+        const syncStatus = document.getElementById('syncStatus');
         
-        let sites = JSON.parse(localStorage.getItem('restreamSites') || '[]');
+        let sites = [];
+        let currentUser = 'default'; // Możesz później dodać logowanie
+        
+        // Sprawdź czy mamy dostęp do Firebase z app.js
+        if (!window.firebase || !firebase.database) {
+            console.error('Firebase nie jest załadowany!');
+            syncStatus.textContent = ' (offline - brak Firebase)';
+            syncStatus.style.color = 'var(--error)';
+            return;
+        }
+        
+        // Użyj referencji z app.js lub stwórz własną
+        let restreamRef;
+        if (window.restreamRef) {
+            restreamRef = window.restreamRef;
+        } else {
+            // Fallback jeśli app.js nie ma restreamRef
+            const firebaseConfig = {
+                apiKey: "AIzaSyAm1X3V10ImJ_RVaIqRpcFqRjlyg9vA5yI",
+                authDomain: "filmy-zk.firebaseapp.com",
+                databaseURL: "https://filmy-zk-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "filmy-zk",
+                storageBucket: "filmy-zk.firebasestorage.app",
+                messagingSenderId: "168407000386",
+                appId: "1:168407000386:web:9220f943400263461394db",
+                measurementId: "G-TLSHRQH647"
+            };
+            
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            restreamRef = firebase.database().ref("restream");
+        }
+        
+        // Monitoruj status połączenia
+        firebase.database().ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                syncStatus.textContent = ' (synchronizowane)';
+                syncStatus.style.color = 'var(--success)';
+            } else {
+                syncStatus.textContent = ' (offline)';
+                syncStatus.style.color = 'var(--warning)';
+            }
+        });
+        
+        // Ładuj dane z Firebase
+        restreamRef.on("value", snapshot => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                // Konwertuj obiekt na tablicę
+                sites = Object.values(data);
+                console.log('Załadowano z Firebase:', sites.length, 'linków');
+                renderRows();
+            } else {
+                sites = [];
+                console.log('Brak linków w Firebase');
+                renderRows();
+            }
+        });
         
         function saveSites() {
-            localStorage.setItem('restreamSites', JSON.stringify(sites));
-            if (window.showNotification) {
-                window.showNotification('Zapisano zmiany', 'success');
-            }
+            // Zapisuj całą tablicę do Firebase
+            restreamRef.set(sites)
+                .then(() => {
+                    if (window.showNotification) {
+                        window.showNotification('Zapisano w chmurze ✓', 'success');
+                    }
+                    console.log('Zapisano do Firebase');
+                })
+                .catch(err => {
+                    console.error("Firebase error:", err);
+                    if (window.showNotification) {
+                        window.showNotification('Błąd zapisu do chmury', 'error');
+                    }
+                    
+                    // Fallback do localStorage
+                    localStorage.setItem('restreamSites_backup', JSON.stringify(sites));
+                });
         }
         
         function renderRows() {
@@ -89,7 +161,7 @@
                 const row = document.createElement('div');
                 row.className = 'restream-row';
                 
-                // KOLUMNA 1: Kontener z nazwą i ikoną edycji
+                // Kontener z nazwą i ikoną edycji
                 const nameContainer = document.createElement('div');
                 nameContainer.style.display = 'flex';
                 nameContainer.style.alignItems = 'center';
@@ -105,7 +177,7 @@
                 nameLink.title = `Otwórz: ${site.url}`;
                 nameLink.style.flex = '1';
                 
-                // Ikona edycji obok
+                // Ikona edycji
                 const editIcon = document.createElement('span');
                 editIcon.textContent = '✏️';
                 editIcon.style.cursor = 'pointer';
@@ -118,14 +190,13 @@
                         sites[index].name = newName.trim();
                         if (!sites[index].name) sites[index].name = '[bez nazwy]';
                         saveSites();
-                        renderRows();
                     }
                 });
                 
                 nameContainer.appendChild(nameLink);
                 nameContainer.appendChild(editIcon);
                 
-                // KOLUMNA 2: Pole na URL
+                // Pole na URL
                 const urlInput = document.createElement('input');
                 urlInput.type = 'text';
                 urlInput.value = site.url;
@@ -139,25 +210,19 @@
                     }
                     sites[index].url = url;
                     saveSites();
-                    // Odśwież link
                     nameLink.href = url;
                     nameLink.title = `Otwórz: ${url}`;
                 });
                 
-                // KOLUMNA 3: Przycisk usuwania
+                // Przycisk usuwania (BEZ CONFIRM)
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = '🗑️';
                 deleteBtn.className = 'restream-delete-btn';
                 deleteBtn.title = 'Usuń stronę';
                 deleteBtn.addEventListener('click', () => {
-                sites.splice(index, 1);
-                saveSites();
-                renderRows();
-    
-                if (window.showNotification) {
-                    window.showNotification(`Usunięto: ${site.name || '[bez nazwy]'}`, 'success');
-    }
-});
+                    sites.splice(index, 1);
+                    saveSites();
+                });
                 
                 row.appendChild(nameContainer);
                 row.appendChild(urlInput);
@@ -167,12 +232,10 @@
         }
         
         addButton.addEventListener('click', () => {
-            // Generuj unikalną nazwę
             let counter = 1;
             let baseName = 'Nowa strona';
             let newName = baseName;
             
-            // Sprawdź czy nazwa już istnieje
             while (sites.some(site => site.name === newName)) {
                 counter++;
                 newName = `${baseName} ${counter}`;
@@ -180,12 +243,13 @@
             
             sites.push({
                 name: newName,
-                url: 'https://'
+                url: 'https://',
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser
             });
-            saveSites();
-            renderRows();
             
-            // Focus na nowym inpucie URL
+            saveSites();
+            
             setTimeout(() => {
                 const lastRow = rowsContainer.lastChild;
                 if (lastRow) {
@@ -198,11 +262,16 @@
             }, 100);
         });
         
-        // Inicjalizacja
-        renderRows();
+        // Na początku spróbuj załadować z localStorage (migracja)
+        const localSites = JSON.parse(localStorage.getItem('restreamSites') || '[]');
+        if (localSites.length > 0 && sites.length === 0) {
+            if (confirm('Znaleziono zapisane linki w przeglądarce. Chcesz je zaimportować do chmury?')) {
+                sites = localSites;
+                saveSites();
+                localStorage.removeItem('restreamSites'); // Wyczyść lokalne
+            }
+        }
     });
     </script>
 </body>
-
 </html>
-

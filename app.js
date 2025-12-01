@@ -719,8 +719,12 @@ function hexToRgba(hex, alpha) {
 
 function loadSavedTheme() {
     const savedTheme = localStorage.getItem('selectedTheme');
+    
     if (savedTheme) {
         changeTheme(savedTheme);
+    } else {
+        changeTheme('original');
+        localStorage.setItem('selectedTheme', 'original');
     }
 }
 
@@ -1883,3 +1887,4 @@ firebase.database().ref('.info/connected').on('value', (snapshot) => {
     }
 
 });
+

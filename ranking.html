@@ -1,41 +1,45 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking Filmów - Tylko Ranking</title>
     
-    <!-- Dodaj brakujące czcionki Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Akronim&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Akronim&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="xd.ico">
 </head>
 
+<body class="ranking-page">
+    <canvas id="fluid-canvas"></canvas>
 
+    <div class="theme-switcher">
+        <div class="theme-dot" data-theme="original" style="--dot-color: #8b5cf6;" title="Oryginalny"></div>
+        <div class="theme-dot" data-theme="blue" style="--dot-color: #00d4ff;" title="Blue"></div>
+        <div class="theme-dot" data-theme="green" style="--dot-color: #10b981;" title="Green"></div>
+        <div class="theme-dot" data-theme="red" style="--dot-color: #ef4444;" title="Red"></div>
+        <div class="theme-dot" data-theme="orange" style="--dot-color: #f97316;" title="Orange"></div>
+        <div class="theme-dot" data-theme="purple" style="--dot-color: #d946ef;" title="Pink"></div>
+        <div class="theme-dot" data-theme="white" style="--dot-color: #ffffff;" title="White"></div>
+    </div>
 
-<body>
     <div class="container">
 
-        <!-- Minimalny Header tylko dla podstrony -->
-<header class="header">
-    <h1>Ranking Filmów</h1>
-    <p>...</p>
-</header>
+        <header class="header">
+            <h1>Ranking Filmów</h1>
+            <p>Zestawienie wszystkich ocenianych produkcji</p>
+        </header>
 
-<div class="nav-container">
-    <a href="index.html" class="nav-button"> Główna</a>
-    <a href="ranking.html" class="nav-button active"> Ranking</a>
-    <a href="restream.html" class="nav-button"> Restream</a>
-</div>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">Główna</a>
+            <a href="ranking.html" class="nav-button active">Ranking</a>
+            <a href="restream.html" class="nav-button">Restream</a>
+        </div>
 
-        <!-- Statystyki -->
-        <div class="stats-container"></div>
 
-        <!-- Tabela rankingowa -->
         <section class="table-container">
             <table id="rankingTable">
                 <thead>
@@ -45,15 +49,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Dane będą wczytywane dynamicznie -->
-                </tbody>
+                    </tbody>
             </table>
         </section>
+
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="fluid.js"></script>
     <script src="app.js"></script>
+
 </body>
 </html>

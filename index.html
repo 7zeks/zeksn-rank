@@ -15,35 +15,31 @@
 
 
 <body>
-    <div class="container">
+    <canvas id="fluid-canvas"></canvas>
+<div class="theme-switcher">
+    <div class="theme-dot" data-theme="original" style="--dot-color: #8b5cf6;" title="Oryginalny (Fiolet)"></div>
+    <div class="theme-dot" data-theme="blue" style="--dot-color: #00d4ff;" title="Cyber Blue"></div>
+    <div class="theme-dot" data-theme="green" style="--dot-color: #10b981;" title="Matrix Green"></div>
+    <div class="theme-dot" data-theme="red" style="--dot-color: #ef4444;" title="Red Alert"></div>
+    <div class="theme-dot" data-theme="orange" style="--dot-color: #f97316;" title="Orange"></div>
+    <div class="theme-dot" data-theme="purple" style="--dot-color: #d946ef;" title="Neon Pink"></div>
+    <div class="theme-dot" data-theme="white" style="--dot-color: #ffffff;" title="White"></div>
+</div>
 
-        <!-- Nagłówek -->
+    <div class="container">
 
         <header class="header">
             <h1>zksn</h1>
-    </p>
-        </header>
+            </header>
 
-<div class="nav-container">
-    <a href="index.html" class="nav-button active">Główna</a>
-    <a href="ranking.html" class="nav-button">Ranking</a>
-    <a href="restream.html" class="nav-button">Restream</a>
-</div>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button active">Główna</a>
+            <a href="ranking.html" class="nav-button">Ranking</a>
+            <a href="restream.html" class="nav-button">Restream</a>
+        </div>
 
-        <!-- Panel dodawania -->
         <section id="panel">
-<div class="panel-step">
-    <label for="themeSelect">🎨 Motyw:</label>
-    <select id="themeSelect">
-        <option value="original">Oryginalny</option>
-        <option value="white">Biały</option>
-        <option value="blue">Niebieski</option>
-        <option value="purple">Fioletowy</option>
-        <option value="green">Zielony</option>
-        <option value="red">Czerwony</option>
-        <option value="orange">Pomarańczowy</option>
-    </select>
-</div>
+                        
             <div class="panel-step">
                 <label for="userSelect">👤 Użytkownik:</label>
                 <select id="userSelect">
@@ -64,16 +60,19 @@
                 <input type="number" id="ratingInput" step="0.1" min="0" max="10" placeholder="0-10">
                 <span>lub</span>
                 <select id="ratingSelect"></select>
-                <button id="saveBtn">💾 Zapisz ocenę</button>
+                <button id="saveBtn"> Zapisz ocenę</button>
             </div>
         </section>
 
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="fluid.js"></script>
+    
     <script src="app.js"></script>
-</body>
-</html>
 
+</body>
+
+</html>

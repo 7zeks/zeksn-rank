@@ -1,50 +1,51 @@
 class RestreamManager {
     constructor() {
-        console.log('RestreamManager inicjalizacja');
+        console.log('RestreamManager (Firebase Fix) inicjalizacja');
         
-        // Start z pustą tablicą lub danymi z localStorage
-        this.sites = JSON.parse(localStorage.getItem("restreamSites") || "[]");
+        this.sites = [];
         this.currentPath = [];
         
-        // Zmienne do obsługi Drag & Drop
         this.dragSrcIndex = null;
-        this.lastAdminState = this.isAdmin(); // <--- NOWE: do wykrywania zmian logowania
-        
-        // Uchwyty do elementów DOM
+        this.lastAdminState = this.isAdmin();
+
         this.rowsDiv = document.getElementById("restreamRows");
         this.breadcrumbsDiv = document.getElementById("breadcrumbs");
         this.addButton = document.getElementById("addRestreamRow");
         this.addFolderButton = document.getElementById("addRestreamFolder");
         
-        if (!this.rowsDiv) {
-            console.error('Brak elementu restreamRows!');
-            return;
+        try {
+            this.dbRef = firebase.database().ref("restream");
+        } catch (e) {
+            console.error("Błąd połączenia z Firebase.", e);
         }
         
+        if (!this.rowsDiv) return;
         this.init();
     }
 
-    // <--- NOWA METODA POMOCNICZA --->
     isAdmin() {
         return document.body.classList.contains('is-admin');
     }
     
+    notify(msg, type = 'info') {
+        if (typeof showNotification === 'function') showNotification(msg, type);
+        else console.log(`[${type}] ${msg}`);
+    }
+    
     init() {
-        // Podpięcie przycisków dodawania
-        if (this.addButton) {
-            this.addButton.onclick = () => this.addItem('link');
-        }
+        if (this.addButton) this.addButton.onclick = () => this.addItem('link');
+        if (this.addFolderButton) this.addFolderButton.onclick = () => this.addItem('folder');
         
-        if (this.addFolderButton) {
-            this.addFolderButton.onclick = () => this.addItem('folder');
+        if (this.dbRef) {
+            this.rowsDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Ładowanie...</div>';
+            
+            this.dbRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                this.sites = data || [];
+                this.render();
+            });
         }
-        
-        // Proste powiadomienie (wyciszone)
-        this.showNotification = (msg) => {
-            console.log('Notification:', msg);
-        };
 
-        // <--- NOWE: Odświeżanie widoku przy zmianie logowania --->
         setInterval(() => {
             const currentAdmin = this.isAdmin();
             if (this.lastAdminState !== currentAdmin) {
@@ -52,17 +53,22 @@ class RestreamManager {
                 this.render();
             }
         }, 1000);
-        
-        // Pierwsze renderowanie listy
-        this.render();
     }
     
+    // --- TUTAJ BYŁ BŁĄD, TO JEST WERSJA NAPRAWIONA ---
     getCurrentList() {
         let list = this.sites;
         for (let index of this.currentPath) {
-            if (list[index] && list[index].children) {
+            // Sprawdzamy czy folder istnieje w strukturze
+            if (list[index]) {
+                // Jeśli folder jest pusty, Firebase nie odsyła pola 'children'.
+                // Musimy je wtedy utworzyć ręcznie, żeby móc do niego wejść lub coś dodać.
+                if (!list[index].children) {
+                    list[index].children = [];
+                }
                 list = list[index].children;
             } else {
+                // Jeśli ścieżka jest błędna, wracamy na start
                 this.currentPath = [];
                 return this.sites;
             }
@@ -78,7 +84,7 @@ class RestreamManager {
         
         const currentList = this.getCurrentList();
         
-        if (currentList.length === 0) {
+        if (!currentList || currentList.length === 0) {
             this.rowsDiv.innerHTML = `
                 <div class="restream-empty-state">
                     <div class="icon">📭</div>
@@ -97,6 +103,8 @@ class RestreamManager {
     createSimpleRow(item, index) {
         const row = document.createElement("div");
         row.className = "restream-row";
+        
+        // Oryginalne style
         row.style.cssText = `
             display: flex;
             align-items: center;
@@ -109,15 +117,17 @@ class RestreamManager {
         if (item.type === 'folder') {
             row.style.background = 'rgba(139, 92, 246, 0.1)';
             row.style.borderLeft = '3px solid var(--primary)';
+        } else {
+            row.style.background = 'transparent';
+            row.style.borderLeft = 'none';
         }
 
-        // --- 1. IKONA (Uchwyt do przesuwania) ---
+        // 1. IKONA (Drag Handle)
         const iconContainer = document.createElement("div");
         iconContainer.style.fontSize = "1.5rem";
         iconContainer.style.padding = "0 10px";
         iconContainer.textContent = item.type === 'folder' ? '📂' : '🔗';
         
-        // <--- LOGIKA ADMINA: DRAG & DROP --->
         if (this.isAdmin()) {
             iconContainer.style.cursor = "grab";
             iconContainer.title = "Przytrzymaj i przeciągnij (Admin)";
@@ -126,7 +136,7 @@ class RestreamManager {
             iconContainer.addEventListener('dragstart', (e) => {
                 this.dragSrcIndex = index;
                 e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/html', row.innerHTML); // fix dla Firefox
+                e.dataTransfer.setData('text/html', row.innerHTML);
                 row.style.opacity = '0.4';
                 row.classList.add('drag-active');
             });
@@ -134,37 +144,10 @@ class RestreamManager {
             iconContainer.addEventListener('dragend', () => {
                 row.style.opacity = '1';
                 row.classList.remove('drag-active');
-                // Przywracamy style po dragu (z Twojego kodu)
-                Array.from(this.rowsDiv.children).forEach(child => {
-                    child.style.borderTop = "none";
-                    child.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
-                    // Hack: prosta detekcja folderu po borderze, żeby przywrócić tło
-                    const isFolder = child.style.borderLeft.includes('var(--primary)');
-                    child.style.background = isFolder ? 'rgba(139, 92, 246, 0.1)' : 'transparent';
-                });
-                this.render(); // Dla pewności przerysowujemy
+                this.render();
             });
 
-            row.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
-                e.dataTransfer.dropEffect = 'move';
-                return false;
-            });
-            
-            row.addEventListener('dragenter', () => {
-                 if (index !== this.dragSrcIndex) {
-                     row.style.background = "rgba(255, 255, 255, 0.1)";
-                 }
-            });
-
-            row.addEventListener('dragleave', () => {
-                 if (item.type === 'folder') {
-                     row.style.background = 'rgba(139, 92, 246, 0.1)';
-                 } else {
-                     row.style.background = "transparent";
-                 }
-            });
-
+            row.addEventListener('dragover', (e) => { e.preventDefault(); return false; });
             row.addEventListener('drop', (e) => {
                 e.stopPropagation();
                 if (this.dragSrcIndex !== index) {
@@ -173,36 +156,19 @@ class RestreamManager {
                 return false;
             });
         } else {
-            // Dla gościa - brak łapki
             iconContainer.style.cursor = "default";
         }
 
-        // --- 2. NAZWA (Klikalna) + EDYCJA (Subtelna po prawej) ---
+        // 2. NAZWA (Klikalna)
         const nameContainer = document.createElement("div");
-        nameContainer.style.cssText = `
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            overflow: hidden;
-            padding-right: 10px;
-        `;
+        nameContainer.style.cssText = `flex: 1; display: flex; align-items: center; gap: 10px; overflow: hidden; padding-right: 10px;`;
 
         const nameSpan = document.createElement("span");
         nameSpan.textContent = item.name || "Bez nazwy";
         nameSpan.style.cssText = `
-            font-weight: 500;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 1rem;
-            padding: 5px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            cursor: pointer;
+            font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 1rem; padding: 5px; border-radius: 4px; transition: all 0.2s; cursor: pointer;
         `;
-        
         nameSpan.onmouseover = () => nameSpan.style.color = "var(--primary)";
         nameSpan.onmouseout = () => nameSpan.style.color = "white";
 
@@ -212,66 +178,37 @@ class RestreamManager {
             } else {
                 let url = item.url;
                 if (url) {
-                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'https://' + url;
-                    }
+                    if (!url.startsWith('http')) url = 'https://' + url;
                     window.open(url, '_blank');
                 }
             }
         };
         
-        if (item.type === 'folder') {
-            nameSpan.title = "Kliknij, aby otworzyć folder";
-        } else {
-            nameSpan.title = `Kliknij, aby otworzyć: ${item.url}`;
-        }
-
-        // <--- LOGIKA ADMINA: IKONKA EDYCJI --->
-        // Tworzymy ikonkę tylko jeśli admin
+        // Ikonka edycji (Admin)
         const editIcon = document.createElement("span");
         if (this.isAdmin()) {
             editIcon.textContent = "✒";
-            editIcon.style.cssText = `
-                cursor: pointer;
-                opacity: 0.1; 
-                font-size: 0.9rem;
-                margin-left: auto;
-                padding: 5px;
-                transition: all 0.2s;
-            `;
-            editIcon.title = "Zmień nazwę";
-
-            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
-            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
-
-            editIcon.onmouseover = (e) => {
-                e.stopPropagation();
-                editIcon.style.opacity = "1";
-                editIcon.style.transform = "scale(1.2)";
-            };
-            editIcon.onmouseout = (e) => {
-                e.stopPropagation();
-                editIcon.style.transform = "scale(1)";
-            };
-
+            editIcon.style.cssText = `cursor: pointer; opacity: 0.1; font-size: 0.9rem; margin-left: auto; padding: 5px; transition: all 0.2s;`;
+            editIcon.onmouseover = (e) => { e.stopPropagation(); editIcon.style.opacity = "1"; editIcon.style.transform = "scale(1.2)"; };
+            editIcon.onmouseout = (e) => { e.stopPropagation(); editIcon.style.opacity = "0.1"; editIcon.style.transform = "scale(1)"; };
             editIcon.onclick = (e) => {
                 e.stopPropagation();
                 const newName = prompt("Zmień nazwę:", item.name);
                 if (newName && newName.trim() !== "") {
                     item.name = newName.trim();
                     this.save();
-                    this.render();
                 }
             };
+            
+            // Pokazywanie ołówka po najechaniu na kontener nazwy
+            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
+            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
         }
 
         nameContainer.appendChild(nameSpan);
-        // Dodajemy ikonkę tylko jeśli admin
-        if (this.isAdmin()) {
-            nameContainer.appendChild(editIcon);
-        }
+        if (this.isAdmin()) nameContainer.appendChild(editIcon);
 
-        // --- 3. KOLUMNA URL / INFO ---
+        // 3. URL / INFO
         const urlCol = document.createElement("div");
         urlCol.style.flex = "2";
         
@@ -283,29 +220,21 @@ class RestreamManager {
             info.style.fontSize = '0.9rem';
             urlCol.appendChild(info);
         } else {
-            // <--- LOGIKA ADMINA: INPUT vs TEXT --->
             if (this.isAdmin()) {
                 const urlInput = document.createElement("input");
                 urlInput.type = "text";
                 urlInput.value = item.url || "";
                 urlInput.style.cssText = `
-                    width: 100%;
-                    padding: 8px 12px;
-                    background: rgba(0,0,0,0.3);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: rgba(255,255,255,0.9);
-                    border-radius: 6px;
-                    font-family: inherit;
-                    font-size: 0.9rem;
+                    width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+                    color: rgba(255,255,255,0.9); border-radius: 6px; font-family: inherit; font-size: 0.9rem;
                 `;
                 urlInput.placeholder = "https://...";
-                urlInput.oninput = (e) => {
+                urlInput.onchange = (e) => {
                     item.url = e.target.value;
                     this.save();
                 };
                 urlCol.appendChild(urlInput);
             } else {
-                // Dla gościa zwykły tekst
                 const urlText = document.createElement("span");
                 urlText.textContent = item.url;
                 urlText.style.color = "rgba(255,255,255,0.5)";
@@ -314,43 +243,29 @@ class RestreamManager {
             }
         }
         
-        // --- 4. PRZYCISK USUWANIA ---
+        // 4. PRZYCISK USUWANIA
         row.appendChild(iconContainer);
         row.appendChild(nameContainer);
         row.appendChild(urlCol);
 
-        // <--- LOGIKA ADMINA: PRZYCISK USUWANIA --->
         if (this.isAdmin()) {
             const deleteBtn = document.createElement("button");
             deleteBtn.textContent = "🗑";
             deleteBtn.style.cssText = `
-                padding: 8px 12px;
-                background: rgba(239, 68, 68, 0.1);
-                color: #ef4444;
-                border: 1px solid rgba(239, 68, 68, 0.3);
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.2s;
+                padding: 8px 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 6px; cursor: pointer; transition: all 0.2s;
             `;
-            deleteBtn.onmouseover = () => {
-                deleteBtn.style.background = "rgba(239, 68, 68, 0.3)";
-                deleteBtn.style.transform = "scale(1.05)";
-            };
-            deleteBtn.onmouseout = () => {
-                deleteBtn.style.background = "rgba(239, 68, 68, 0.1)";
-                deleteBtn.style.transform = "scale(1)";
-            };
+            deleteBtn.onmouseover = () => { deleteBtn.style.background = "rgba(239, 68, 68, 0.3)"; deleteBtn.style.transform = "scale(1.05)"; };
+            deleteBtn.onmouseout = () => { deleteBtn.style.background = "rgba(239, 68, 68, 0.1)"; deleteBtn.style.transform = "scale(1)"; };
             deleteBtn.onclick = () => {
                 if (confirm(`Usunąć "${item.name}"?`)) {
                     const list = this.getCurrentList();
                     list.splice(index, 1);
                     this.save();
-                    this.render();
                 }
             };
             row.appendChild(deleteBtn);
         } else {
-             // Pusty element dla gościa, żeby zachować układ
              const dummy = document.createElement("div");
              dummy.style.width = "40px";
              row.appendChild(dummy);
@@ -364,7 +279,6 @@ class RestreamManager {
         const [movedItem] = list.splice(fromIndex, 1);
         list.splice(toIndex, 0, movedItem);
         this.save();
-        this.render();
     }
     
     renderBreadcrumbs() {
@@ -374,14 +288,14 @@ class RestreamManager {
         
         let pathRef = this.sites;
         this.currentPath.forEach((folderIndex, i) => {
-            const folder = pathRef[folderIndex];
-            if (folder) {
+            if(pathRef[folderIndex]) {
+                const folder = pathRef[folderIndex];
                 const isActive = (i === this.currentPath.length - 1);
                 html += ` <span class="separator">/</span> 
                           <span class="crumb ${isActive ? 'active' : ''}" onclick="window.restreamManager.navigateTo(${i})">
                             📂 ${folder.name}
                           </span>`;
-                pathRef = folder.children;
+                pathRef = folder.children || [];
             }
         });
         
@@ -403,14 +317,12 @@ class RestreamManager {
     }
     
     addItem(type) {
-        // <--- LOGIKA ADMINA: BLOKADA DODAWANIA --->
         if (!this.isAdmin()) {
-            alert("🔒 Zaloguj się jako admin!");
+            this.notify("🔒 Zaloguj się jako admin!", "error");
             return;
         }
 
-        console.log('Dodawanie elementu typu:', type);
-        const list = this.getCurrentList();
+        const list = this.getCurrentList(); // Teraz to na pewno zwróci poprawną tablicę
         
         if (type === 'folder') {
             list.push({
@@ -418,28 +330,33 @@ class RestreamManager {
                 name: 'Nowy Folder',
                 children: []
             });
-            this.showNotification('Dodano folder');
+            this.notify('Dodano folder', 'success');
         } else {
             list.push({
                 type: 'link',
                 name: 'Nowa strona',
                 url: 'https://'
             });
-            this.showNotification('Dodano stronę');
+            this.notify('Dodano stronę', 'success');
         }
         
         this.save();
-        this.render();
     }
     
     save() {
-        localStorage.setItem("restreamSites", JSON.stringify(this.sites));
-        console.log('Zapisano do localStorage:', this.sites);
+        if (this.dbRef) {
+            this.dbRef.set(this.sites).catch(err => {
+                console.error(err);
+                this.notify("Błąd zapisu w chmurze", "error");
+            });
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById("restreamRows")) {
-        window.restreamManager = new RestreamManager();
+        setTimeout(() => {
+            window.restreamManager = new RestreamManager();
+        }, 500);
     }
 });

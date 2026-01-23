@@ -1,0 +1,79 @@
+/* ===== RANKING & STATS SPECIFIC STYLES ===== */
+
+/* Statystyki */
+.stats-container { 
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px; margin-bottom: 25px; pointer-events: auto;
+}
+.stat {
+    background: var(--surface); padding: 20px; border-radius: 2px;
+    text-align: center; border: 1px solid var(--border);
+    box-shadow: var(--glow); transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary); }
+.stat:hover { box-shadow: var(--glow-hover); transform: translateY(-3px); }
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px; }
+.stat-label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 400; text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* Tabela Rankingu */
+.table-container {
+    background: rgba(15, 15, 25, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08); pointer-events: auto;
+}
+.table-container:hover { box-shadow: var(--glow-hover); }
+
+#rankingTable { width: 100%; border-collapse: collapse; font-family: inherit; font-size: 0.95rem; }
+#rankingTable thead { background: rgba(139, 92, 246, 0.1); }
+#rankingTable th { 
+    padding: 18px 20px; text-align: left; font-weight: 600; color: var(--primary);
+    text-transform: uppercase; letter-spacing: 0.3px; font-size: 0.85rem;
+    cursor: pointer; user-select: none; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease; position: relative;
+}
+#rankingTable th:hover { background: rgba(255, 255, 255, 0.05); }
+#rankingTable tbody tr { 
+    background: transparent; transition: all 0.2s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+}
+#rankingTable tbody tr:last-child { border-bottom: none; }
+#rankingTable td { padding: 16px 20px; color: var(--text); }
+#rankingTable tbody tr:hover { background: rgba(255, 255, 255, 0.05); transform: scale(1.005); }
+
+/* Sortowanie */
+#rankingTable th.sort-asc::after { content: " ↑"; color: white; font-weight: bold; }
+#rankingTable th.sort-desc::after { content: " ↓"; color: white; font-weight: bold; }
+
+/* Kolory ocen */
+.rating-cell { text-align: center; font-weight: 600; font-family: inherit; font-size: 1rem; }
+.rating-high { color: var(--success); text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+.rating-medium { color: var(--warning); text-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+.rating-low { color: var(--error); text-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+
+/* Wyszukiwarka */
+.search-clear-btn {
+    position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem; cursor: pointer; padding: 5px; z-index: 10;
+    display: none; transition: color 0.2s;
+}
+.search-clear-btn:hover { color: white; transform: translateY(-50%) scale(1.1); }
+
+/* Responsywność Rankingu */
+@media (max-width: 768px) {
+    .stats-container { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    #rankingTable th, #rankingTable td { padding: 10px 12px; font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+    .stat {
+        background: rgba(15, 15, 25, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 16px;
+        text-align: center; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+    .stat::before { background: linear-gradient(90deg, var(--primary), var(--cyber-blue)); }
+    .stat:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); }
+    .stat-value {
+        font-size: 2.2rem; background: linear-gradient(135deg, #fff 0%, var(--text-secondary) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+}

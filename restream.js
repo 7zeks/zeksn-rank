@@ -1,207 +1,445 @@
 class RestreamManager {
     constructor() {
+        console.log('RestreamManager inicjalizacja');
+        
+        // Start z pustą tablicą lub danymi z localStorage
         this.sites = JSON.parse(localStorage.getItem("restreamSites") || "[]");
+        this.currentPath = [];
+        
+        // Zmienne do obsługi Drag & Drop
+        this.dragSrcIndex = null;
+        this.lastAdminState = this.isAdmin(); // <--- NOWE: do wykrywania zmian logowania
+        
+        // Uchwyty do elementów DOM
         this.rowsDiv = document.getElementById("restreamRows");
+        this.breadcrumbsDiv = document.getElementById("breadcrumbs");
         this.addButton = document.getElementById("addRestreamRow");
+        this.addFolderButton = document.getElementById("addRestreamFolder");
+        
+        if (!this.rowsDiv) {
+            console.error('Brak elementu restreamRows!');
+            return;
+        }
         
         this.init();
     }
+
+    // <--- NOWA METODA POMOCNICZA --->
+    isAdmin() {
+        return document.body.classList.contains('is-admin');
+    }
     
     init() {
-        // Użyj funkcji z app.js jeśli istnieje
-        if (window.showNotification) {
-            this.showNotification = window.showNotification;
-        } else {
-            this.showNotification = this.defaultNotification;
+        // Podpięcie przycisków dodawania
+        if (this.addButton) {
+            this.addButton.onclick = () => this.addItem('link');
         }
         
+        if (this.addFolderButton) {
+            this.addFolderButton.onclick = () => this.addItem('folder');
+        }
+        
+        // Proste powiadomienie (wyciszone)
+        this.showNotification = (msg) => {
+            console.log('Notification:', msg);
+        };
+
+        // <--- NOWE: Odświeżanie widoku przy zmianie logowania --->
+        setInterval(() => {
+            const currentAdmin = this.isAdmin();
+            if (this.lastAdminState !== currentAdmin) {
+                this.lastAdminState = currentAdmin;
+                this.render();
+            }
+        }, 1000);
+        
+        // Pierwsze renderowanie listy
         this.render();
-        this.bindEvents();
-        
-        // Użyj motywu z app.js
-        this.applyTheme();
     }
     
-    applyTheme() {
-        const savedTheme = localStorage.getItem('selectedTheme');
-        if (savedTheme && window.changeTheme) {
-            window.changeTheme(savedTheme);
+    getCurrentList() {
+        let list = this.sites;
+        for (let index of this.currentPath) {
+            if (list[index] && list[index].children) {
+                list = list[index].children;
+            } else {
+                this.currentPath = [];
+                return this.sites;
+            }
         }
-    }
-    
-    defaultNotification(message, type = 'success') {
-        console.log(`[${type.toUpperCase()}] ${message}`);
-        
-        // Prosta notyfikacja jeśli nie ma z app.js
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: ${type === 'error' ? '#ef4444' : '#10b981'};
-            color: white;
-            border-radius: 2px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-    
-    save() {
-        localStorage.setItem("restreamSites", JSON.stringify(this.sites));
-        this.showNotification('Zapisano zmiany');
+        return list;
     }
     
     render() {
-        if (this.sites.length === 0) {
+        if (!this.rowsDiv) return;
+        
+        this.rowsDiv.innerHTML = "";
+        this.renderBreadcrumbs();
+        
+        const currentList = this.getCurrentList();
+        
+        if (currentList.length === 0) {
             this.rowsDiv.innerHTML = `
                 <div class="restream-empty-state">
-                    <div class="icon">📺</div>
-                    <h3>Brak stron streamingowych</h3>
-                    <p>Kliknij przycisk poniżej, aby dodać pierwszą stronę</p>
+                    <div class="icon">📭</div>
+                    <div class="title">Pusto tutaj</div>
+                    <div class="subtitle">Dodaj pierwszą stronę lub folder</div>
                 </div>
             `;
             return;
         }
-    
-        this.rowsDiv.innerHTML = "";
-        this.sites.forEach((row, i) => {
-            const rowElement = document.createElement('div');
-            rowElement.className = 'restream-row';
-            rowElement.innerHTML = `
-                <input class="restream-input" value="${this.escapeHtml(row.name)}" 
-                       placeholder="Wpisz nazwę strony..." 
-                       data-index="${i}" data-type="name">
-                <input class="restream-input" value="${this.escapeHtml(row.url)}" 
-                       placeholder="https://przyklad.com" 
-                       data-index="${i}" data-type="url">
-                <button class="restream-delete-btn" data-index="${i}" 
-                        title="Usuń stronę">🗑️</button>
-            `;
-            this.rowsDiv.appendChild(rowElement);
-        });
         
-        // Dodaj event listeners do nowych elementów
-        this.bindRowEvents();
-    }
-    
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    bindEvents() {
-        this.addButton.addEventListener('click', () => this.addRow());
-        
-        // Obsługa Enter w inputach
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.target.classList.contains('restream-input')) {
-                e.target.blur();
-            }
+        currentList.forEach((item, index) => {
+            this.createSimpleRow(item, index);
         });
     }
     
-    bindRowEvents() {
-        // Input changes
-        document.querySelectorAll('.restream-input').forEach(input => {
-            input.addEventListener('change', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                const type = e.target.dataset.type;
-                const value = e.target.value.trim();
-                
-                if (type === 'name') {
-                    this.updateName(index, value);
-                } else if (type === 'url') {
-                    this.updateUrl(index, value);
-                }
+    createSimpleRow(item, index) {
+        const row = document.createElement("div");
+        row.className = "restream-row";
+        row.style.cssText = `
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            gap: 15px;
+            transition: background 0.2s, transform 0.2s;
+        `;
+        
+        if (item.type === 'folder') {
+            row.style.background = 'rgba(139, 92, 246, 0.1)';
+            row.style.borderLeft = '3px solid var(--primary)';
+        }
+
+        // --- 1. IKONA (Uchwyt do przesuwania) ---
+        const iconContainer = document.createElement("div");
+        iconContainer.style.fontSize = "1.5rem";
+        iconContainer.style.padding = "0 10px";
+        iconContainer.textContent = item.type === 'folder' ? '📂' : '🔗';
+        
+        // <--- LOGIKA ADMINA: DRAG & DROP --->
+        if (this.isAdmin()) {
+            iconContainer.style.cursor = "grab";
+            iconContainer.title = "Przytrzymaj i przeciągnij (Admin)";
+            iconContainer.draggable = true;
+            
+            iconContainer.addEventListener('dragstart', (e) => {
+                this.dragSrcIndex = index;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', row.innerHTML); // fix dla Firefox
+                row.style.opacity = '0.4';
+                row.classList.add('drag-active');
+            });
+
+            iconContainer.addEventListener('dragend', () => {
+                row.style.opacity = '1';
+                row.classList.remove('drag-active');
+                // Przywracamy style po dragu (z Twojego kodu)
+                Array.from(this.rowsDiv.children).forEach(child => {
+                    child.style.borderTop = "none";
+                    child.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+                    // Hack: prosta detekcja folderu po borderze, żeby przywrócić tło
+                    const isFolder = child.style.borderLeft.includes('var(--primary)');
+                    child.style.background = isFolder ? 'rgba(139, 92, 246, 0.1)' : 'transparent';
+                });
+                this.render(); // Dla pewności przerysowujemy
+            });
+
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                e.dataTransfer.dropEffect = 'move';
+                return false;
             });
             
-            // Auto-select przy focus
-            input.addEventListener('focus', (e) => {
-                e.target.select();
+            row.addEventListener('dragenter', () => {
+                 if (index !== this.dragSrcIndex) {
+                     row.style.background = "rgba(255, 255, 255, 0.1)";
+                 }
             });
-        });
-        
-        // Delete buttons
-        document.querySelectorAll('.restream-delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.removeRow(index);
+
+            row.addEventListener('dragleave', () => {
+                 if (item.type === 'folder') {
+                     row.style.background = 'rgba(139, 92, 246, 0.1)';
+                 } else {
+                     row.style.background = "transparent";
+                 }
             });
-        });
-    }
-    
-    updateName(i, val) {
-        if (!val.trim()) {
-            this.showNotification('Nazwa nie może być pusta', 'error');
-            this.render();
-            return;
+
+            row.addEventListener('drop', (e) => {
+                e.stopPropagation();
+                if (this.dragSrcIndex !== index) {
+                    this.reorderItems(this.dragSrcIndex, index);
+                }
+                return false;
+            });
+        } else {
+            // Dla gościa - brak łapki
+            iconContainer.style.cursor = "default";
         }
-        this.sites[i].name = val;
-        this.save();
-    }
-    
-    updateUrl(i, val) {
-        if (!val.trim()) {
-            this.showNotification('URL nie może być pusty', 'error');
-            this.render();
-            return;
-        }
+
+        // --- 2. NAZWA (Klikalna) + EDYCJA (Subtelna po prawej) ---
+        const nameContainer = document.createElement("div");
+        nameContainer.style.cssText = `
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            padding-right: 10px;
+        `;
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = item.name || "Bez nazwy";
+        nameSpan.style.cssText = `
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+        `;
         
-        // Dodaj https:// jeśli brakuje
-        if (!val.startsWith('http://') && !val.startsWith('https://')) {
-            val = 'https://' + val;
-        }
-        
-        this.sites[i].url = val;
-        this.save();
-        this.render(); // Re-render żeby pokazać poprawiony URL
-    }
-    
-    removeRow(i) {
-    const siteName = this.sites[i].name;
-    
-    this.sites.splice(i, 1);
-    this.save();
-    this.render();
-    this.showNotification(`Usunięto stronę: ${siteName}`);
-}
-    
-    addRow() {
-        this.sites.push({ 
-            name: "Nowa strona", 
-            url: "https://" 
-        });
-        this.save();
-        this.render();
-        
-        // Focus na nowym inpucie nazwy
-        setTimeout(() => {
-            const newRow = this.rowsDiv.lastChild;
-            if (newRow) {
-                const nameInput = newRow.querySelector('[data-type="name"]');
-                if (nameInput) {
-                    nameInput.focus();
-                    nameInput.select();
+        nameSpan.onmouseover = () => nameSpan.style.color = "var(--primary)";
+        nameSpan.onmouseout = () => nameSpan.style.color = "white";
+
+        nameSpan.onclick = () => {
+            if (item.type === 'folder') {
+                this.enterFolder(index);
+            } else {
+                let url = item.url;
+                if (url) {
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        url = 'https://' + url;
+                    }
+                    window.open(url, '_blank');
                 }
             }
-        }, 100);
+        };
+        
+        if (item.type === 'folder') {
+            nameSpan.title = "Kliknij, aby otworzyć folder";
+        } else {
+            nameSpan.title = `Kliknij, aby otworzyć: ${item.url}`;
+        }
+
+        // <--- LOGIKA ADMINA: IKONKA EDYCJI --->
+        // Tworzymy ikonkę tylko jeśli admin
+        const editIcon = document.createElement("span");
+        if (this.isAdmin()) {
+            editIcon.textContent = "✒";
+            editIcon.style.cssText = `
+                cursor: pointer;
+                opacity: 0.1; 
+                font-size: 0.9rem;
+                margin-left: auto;
+                padding: 5px;
+                transition: all 0.2s;
+            `;
+            editIcon.title = "Zmień nazwę";
+
+            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
+            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
+
+            editIcon.onmouseover = (e) => {
+                e.stopPropagation();
+                editIcon.style.opacity = "1";
+                editIcon.style.transform = "scale(1.2)";
+            };
+            editIcon.onmouseout = (e) => {
+                e.stopPropagation();
+                editIcon.style.transform = "scale(1)";
+            };
+
+            editIcon.onclick = (e) => {
+                e.stopPropagation();
+                const newName = prompt("Zmień nazwę:", item.name);
+                if (newName && newName.trim() !== "") {
+                    item.name = newName.trim();
+                    this.save();
+                    this.render();
+                }
+            };
+        }
+
+        nameContainer.appendChild(nameSpan);
+        // Dodajemy ikonkę tylko jeśli admin
+        if (this.isAdmin()) {
+            nameContainer.appendChild(editIcon);
+        }
+
+        // --- 3. KOLUMNA URL / INFO ---
+        const urlCol = document.createElement("div");
+        urlCol.style.flex = "2";
+        
+        if (item.type === 'folder') {
+            const count = item.children ? item.children.length : 0;
+            const info = document.createElement("span");
+            info.textContent = `${count} elementów`;
+            info.style.color = 'rgba(255,255,255,0.6)';
+            info.style.fontSize = '0.9rem';
+            urlCol.appendChild(info);
+        } else {
+            // <--- LOGIKA ADMINA: INPUT vs TEXT --->
+            if (this.isAdmin()) {
+                const urlInput = document.createElement("input");
+                urlInput.type = "text";
+                urlInput.value = item.url || "";
+                urlInput.style.cssText = `
+                    width: 100%;
+                    padding: 8px 12px;
+                    background: rgba(0,0,0,0.3);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: rgba(255,255,255,0.9);
+                    border-radius: 6px;
+                    font-family: inherit;
+                    font-size: 0.9rem;
+                `;
+                urlInput.placeholder = "https://...";
+                urlInput.oninput = (e) => {
+                    item.url = e.target.value;
+                    this.save();
+                };
+                urlCol.appendChild(urlInput);
+            } else {
+                // Dla gościa zwykły tekst
+                const urlText = document.createElement("span");
+                urlText.textContent = item.url;
+                urlText.style.color = "rgba(255,255,255,0.5)";
+                urlText.style.fontSize = "0.9rem";
+                urlCol.appendChild(urlText);
+            }
+        }
+        
+        // --- 4. PRZYCISK USUWANIA ---
+        row.appendChild(iconContainer);
+        row.appendChild(nameContainer);
+        row.appendChild(urlCol);
+
+        // <--- LOGIKA ADMINA: PRZYCISK USUWANIA --->
+        if (this.isAdmin()) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "🗑";
+            deleteBtn.style.cssText = `
+                padding: 8px 12px;
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+            `;
+            deleteBtn.onmouseover = () => {
+                deleteBtn.style.background = "rgba(239, 68, 68, 0.3)";
+                deleteBtn.style.transform = "scale(1.05)";
+            };
+            deleteBtn.onmouseout = () => {
+                deleteBtn.style.background = "rgba(239, 68, 68, 0.1)";
+                deleteBtn.style.transform = "scale(1)";
+            };
+            deleteBtn.onclick = () => {
+                if (confirm(`Usunąć "${item.name}"?`)) {
+                    const list = this.getCurrentList();
+                    list.splice(index, 1);
+                    this.save();
+                    this.render();
+                }
+            };
+            row.appendChild(deleteBtn);
+        } else {
+             // Pusty element dla gościa, żeby zachować układ
+             const dummy = document.createElement("div");
+             dummy.style.width = "40px";
+             row.appendChild(dummy);
+        }
+        
+        this.rowsDiv.appendChild(row);
+    }
+
+    reorderItems(fromIndex, toIndex) {
+        const list = this.getCurrentList();
+        const [movedItem] = list.splice(fromIndex, 1);
+        list.splice(toIndex, 0, movedItem);
+        this.save();
+        this.render();
+    }
+    
+    renderBreadcrumbs() {
+        if (!this.breadcrumbsDiv) return;
+        
+        let html = `<span class="crumb ${this.currentPath.length === 0 ? 'active' : ''}" onclick="window.restreamManager.navigateTo(-1)">🏠 Główna</span>`;
+        
+        let pathRef = this.sites;
+        this.currentPath.forEach((folderIndex, i) => {
+            const folder = pathRef[folderIndex];
+            if (folder) {
+                const isActive = (i === this.currentPath.length - 1);
+                html += ` <span class="separator">/</span> 
+                          <span class="crumb ${isActive ? 'active' : ''}" onclick="window.restreamManager.navigateTo(${i})">
+                            📂 ${folder.name}
+                          </span>`;
+                pathRef = folder.children;
+            }
+        });
+        
+        this.breadcrumbsDiv.innerHTML = html;
+    }
+    
+    navigateTo(pathIndex) {
+        if (pathIndex === -1) {
+            this.currentPath = [];
+        } else {
+            this.currentPath = this.currentPath.slice(0, pathIndex + 1);
+        }
+        this.render();
+    }
+    
+    enterFolder(index) {
+        this.currentPath.push(index);
+        this.render();
+    }
+    
+    addItem(type) {
+        // <--- LOGIKA ADMINA: BLOKADA DODAWANIA --->
+        if (!this.isAdmin()) {
+            alert("🔒 Zaloguj się jako admin!");
+            return;
+        }
+
+        console.log('Dodawanie elementu typu:', type);
+        const list = this.getCurrentList();
+        
+        if (type === 'folder') {
+            list.push({
+                type: 'folder',
+                name: 'Nowy Folder',
+                children: []
+            });
+            this.showNotification('Dodano folder');
+        } else {
+            list.push({
+                type: 'link',
+                name: 'Nowa strona',
+                url: 'https://'
+            });
+            this.showNotification('Dodano stronę');
+        }
+        
+        this.save();
+        this.render();
+    }
+    
+    save() {
+        localStorage.setItem("restreamSites", JSON.stringify(this.sites));
+        console.log('Zapisano do localStorage:', this.sites);
     }
 }
 
-// Uruchom po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // Sprawdź czy jesteśmy na stronie restream
-    if (window.location.pathname.includes('restream.html') || 
-        document.title.includes('Restream')) {
-        new RestreamManager();
+    if (document.getElementById("restreamRows")) {
+        window.restreamManager = new RestreamManager();
     }
 });

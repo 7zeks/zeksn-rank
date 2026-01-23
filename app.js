@@ -42,6 +42,7 @@ let users = [];
 let restreamSites = [];
 let currentSort = { key: "rating", dir: -1 };
 let currentUser = "";
+let isAdmin = false; // <--- POPRAWKA: Zmienna globalna
 
 // ----------------------------
 // INICJALIZACJA APLIKACJI
@@ -49,6 +50,9 @@ let currentUser = "";
 function initApp() {
     console.log('Startowanie aplikacji...');
     
+    // 0. Setup Autoryzacji (Admina)
+    setupAuth(); // <--- POPRAWKA: Wywołanie funkcji
+
     // 1. Wspólne dla wszystkich stron (Motywy)
     loadSavedTheme();
     setupThemeChanger();
@@ -71,14 +75,78 @@ function initApp() {
         loadInitialRankingData();
     }
 
-    // 4. Logika dla Restream
-    if (isRestreamPage) {
-        console.log('>>> Setup Restream');
-        setupRestreamLogic();
-    }
-
     // 5. Pobieranie użytkowników (potrzebne wszędzie)
     setupUsersListener();
+}
+
+// ----------------------------
+// AUTORYZACJA (ADMIN)
+// ----------------------------
+function setupAuth() {
+    const auth = firebase.auth();
+    
+    // 1. Dodaj HTML do logowania (Kłódka i Modal)
+    const authUI = `
+        <div class="admin-login-trigger" id="loginTrigger">🔒</div>
+        <button class="logout-btn" id="logoutBtn">Wyloguj</button>
+        
+        <div id="loginModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 300px; text-align: center;">
+                <div class="modal-header"><h3>Admin Login</h3><button class="modal-close-login">&times;</button></div>
+                <div class="modal-body">
+                    <input type="email" id="adminEmail" placeholder="Email" style="margin-bottom:10px; width:100%;">
+                    <input type="password" id="adminPass" placeholder="Hasło" style="margin-bottom:15px; width:100%;">
+                    <button id="doLoginBtn" class="btn-confirm" style="width:100%;">Zaloguj</button>
+                    <p id="loginError" style="color:var(--error); margin-top:10px; font-size:0.8rem;"></p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', authUI);
+
+    // 2. Obsługa zdarzeń (kliknięcia)
+    const loginTrigger = document.getElementById('loginTrigger');
+    const loginModal = document.getElementById('loginModal');
+    const closeLogin = document.querySelector('.modal-close-login');
+    const doLoginBtn = document.getElementById('doLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if(loginTrigger) loginTrigger.addEventListener('click', () => loginModal.classList.remove('hidden'));
+    if(closeLogin) closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
+
+    if(doLoginBtn) doLoginBtn.addEventListener('click', () => {
+        const email = document.getElementById('adminEmail').value;
+        const pass = document.getElementById('adminPass').value;
+        
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                loginModal.classList.add('hidden');
+                showNotification('Zalogowano jako Admin', 'success');
+                document.getElementById('adminEmail').value = '';
+                document.getElementById('adminPass').value = '';
+            })
+            .catch(error => {
+                const errElem = document.getElementById('loginError');
+                if(errElem) errElem.textContent = "Błąd: " + error.message;
+            });
+    });
+
+    if(logoutBtn) logoutBtn.addEventListener('click', () => {
+        auth.signOut().then(() => showNotification('Wylogowano', 'info'));
+    });
+
+    // 3. Nasłuchiwanie zmian stanu (Admin vs Gość)
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            isAdmin = true;
+            document.body.classList.add('is-admin');
+            console.log('Tryb: ADMIN');
+        } else {
+            isAdmin = false;
+            document.body.classList.remove('is-admin');
+            console.log('Tryb: GOŚĆ');
+        }
+    });
 }
 
 // ============================================================
@@ -101,8 +169,16 @@ function setupAddUserButton() {
     `;
     panel.insertAdjacentHTML('afterbegin', addUserHTML);
     
-    document.getElementById('addUserBtn').addEventListener('click', showAddUserModal);
-    document.getElementById('manageUsersBtn').addEventListener('click', showManageUsersModal);
+    // POPRAWKA: Listenery dodajemy PO wstawieniu HTML
+    document.getElementById('addUserBtn').addEventListener('click', () => {
+        if (!isAdmin) return showNotification("🔒 Tylko admin może dodawać użytkowników", "error");
+        showAddUserModal();
+    });
+
+    document.getElementById('manageUsersBtn').addEventListener('click', () => {
+        if (!isAdmin) return showNotification("🔒 Tylko admin może zarządzać", "error");
+        showManageUsersModal();
+    });
 }
 
 function setupIndexEventListeners() {
@@ -186,6 +262,12 @@ function handleNextStep() {
 }
 
 async function handleSaveRating() {
+    // ---> BLOKADA DLA GOŚCI <---
+    if (!isAdmin) {
+        showNotification("🔒 Zaloguj się, aby dodawać oceny!", "error");
+        return; 
+    }
+
     const userSelect = document.getElementById("userSelect");
     const movieTitle = document.getElementById("movieTitle");
     const ratingInput = document.getElementById("ratingInput");
@@ -278,6 +360,9 @@ function setupRestreamLogic() {
 
     if (addButton) {
         addButton.addEventListener('click', () => {
+            // Zabezpieczenie też tutaj (dla pewności, choć restream.js ma swoje)
+            if (!isAdmin) return showNotification("🔒 Brak uprawnień", "error");
+
             let counter = 1;
             let baseName = 'Nowa strona';
             let newName = baseName;
@@ -306,6 +391,8 @@ function renderRestreamRows() {
     }
     
     restreamSites.forEach((site, index) => {
+        // Uwaga: Logika renderowania restreamu jest teraz głównie w restream.js
+        // Ta funkcja jest fallbackiem dla starego widoku, jeśli restream.js nie zadziała
         const row = document.createElement('div');
         row.className = 'restream-row';
         
@@ -325,6 +412,7 @@ function renderRestreamRows() {
         editIcon.style.cursor = 'pointer';
         editIcon.style.opacity = '0.5';
         editIcon.onclick = () => {
+            if (!isAdmin) return showNotification("🔒 Brak uprawnień", "error");
             const newName = prompt('Zmień nazwę:', site.name);
             if (newName) {
                 restreamSites[index].name = newName;
@@ -340,6 +428,10 @@ function renderRestreamRows() {
         urlInput.value = site.url;
         urlInput.placeholder = 'https://...';
         urlInput.onchange = (e) => {
+             if (!isAdmin) {
+                e.target.value = site.url; // cofnij zmianę
+                return showNotification("🔒 Brak uprawnień", "error");
+            }
             let val = e.target.value.trim();
             if (val && !val.startsWith('http')) val = 'https://' + val;
             restreamSites[index].url = val;
@@ -348,8 +440,9 @@ function renderRestreamRows() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'restream-delete-btn';
-        deleteBtn.textContent = '🗑️';
+        deleteBtn.textContent = '🗑';
         deleteBtn.onclick = () => {
+             if (!isAdmin) return showNotification("🔒 Brak uprawnień", "error");
             if(confirm(`Usunąć "${site.name}"?`)) {
                 restreamSites.splice(index, 1);
                 saveRestreamSites();
@@ -409,26 +502,65 @@ function renderFullTable() {
         tr.dataset.id = item.id;
         
         // --- KLUCZOWE: PRAWY PRZYCISK MYSZY ---
+        // POPRAWKA: Przeniesione do środka pętli
         tr.addEventListener("contextmenu", (e) => {
             e.preventDefault();
+            // ---> BLOKADA <---
+            if (!isAdmin) {
+                showNotification("🔒 Edycja tylko dla admina", "error");
+                return;
+            }
             showRatingDetails(item); // Wywołanie menu kontekstowego
         });
         
-        // Tytuł
+        // Tytuł + Ikonka Filmweb
         const tdFilm = document.createElement("td");
-        tdFilm.innerHTML = `<span style="font-weight:500">${item.film}</span>`;
+        tdFilm.style.display = "flex";
+        tdFilm.style.alignItems = "center";
+        tdFilm.style.justifyContent = "space-between"; // Tekst z lewej, ikona z prawej
+
+        // 1. Tytuł filmu
+        const titleSpan = document.createElement("span");
+        titleSpan.style.fontWeight = "500";
+        titleSpan.textContent = item.film;
+
+        // 2. Ikonka Filmweb
+        const fwIcon = document.createElement("img");
+        fwIcon.src = "https://www.filmweb.pl/favicon.ico"; // Oryginalna ikona FW
+        fwIcon.alt = "FW";
+        fwIcon.title = "Szukaj na Filmwebie";
+        fwIcon.style.width = "16px";
+        fwIcon.style.height = "16px";
+        fwIcon.style.cursor = "pointer";
+        fwIcon.style.opacity = "0.6";
+        fwIcon.style.transition = "opacity 0.2s";
+        fwIcon.style.marginLeft = "10px";
+
+        // Logika kliknięcia
+        fwIcon.addEventListener("click", (e) => {
+            e.stopPropagation(); // Żeby nie kolidowało z innymi kliknięciami
+            const query = encodeURIComponent(item.film);
+            window.open(`https://www.filmweb.pl/search#/all?query=${query}`);
+        });
+
+        // Efekt najechania myszką
+        fwIcon.addEventListener("mouseenter", () => fwIcon.style.opacity = "1");
+        fwIcon.addEventListener("mouseleave", () => fwIcon.style.opacity = "0.6");
+
+        tdFilm.appendChild(titleSpan);
+        tdFilm.appendChild(fwIcon);
         tr.appendChild(tdFilm);
         
         // Ocena
         const tdRating = document.createElement("td");
         const avg = parseFloat(item.avgRating || item.rating || 0);
         tdRating.textContent = avg.toFixed(1);
-        tdRating.style.textAlign = 'center';
+        tdRating.style.textAlign = 'left';
         tdRating.style.fontWeight = '700';
         
-        if (avg >= 8) tdRating.style.color = '#10b981';
-        else if (avg >= 5) tdRating.style.color = '#f59e0b';
-        else tdRating.style.color = '#ef4444';
+        if (avg >= 8) tdRating.style.color = '#10b981a9';
+        else if (avg >= 5) tdRating.style.color = '#f59f0bb6';
+        else tdRating.style.color = '#ef4444ab';
         
         tr.appendChild(tdRating);
         tbody.appendChild(tr);
@@ -447,8 +579,8 @@ function showRatingDetails(item) {
             <div class="rating-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
                 <div><strong>${user}:</strong> ${parseFloat(rating).toFixed(1)}</div>
                 <div style="display: flex; gap: 5px;">
-                    <button class="btn-edit-rating" data-user="${user}" style="padding: 4px 8px; background: var(--primary); font-size: 0.8rem;">✏️</button>
-                    <button class="btn-delete-rating" data-user="${user}" style="padding: 4px 8px; background: var(--error); font-size: 0.8rem;">🗑️</button>
+                    <button class="btn-edit-rating" data-user="${user}" style="padding: 4px 8px; background: var(--primary); font-size: 0.8rem;">✎</button>
+                    <button class="btn-delete-rating" data-user="${user}" style="padding: 4px 8px; background: var(--error); font-size: 0.8rem;">🗑</button>
                 </div>
             </div>
         `;
@@ -616,11 +748,45 @@ function filterTableLogic(term) {
         // Prawy przycisk myszy
         tr.addEventListener("contextmenu", (ev) => {
             ev.preventDefault();
+            if (!isAdmin) {
+                showNotification("🔒 Edycja tylko dla admina", "error");
+                return;
+            }
             showRatingDetails(item);
         });
 
+        // Tytuł + Ikonka Filmweb (Wersja dla wyszukiwarki)
         const tdFilm = document.createElement("td");
-        tdFilm.innerHTML = `<span style="font-weight:500">${item.film}</span>`;
+        tdFilm.style.display = "flex";
+        tdFilm.style.alignItems = "center";
+        tdFilm.style.justifyContent = "space-between";
+
+        const titleSpan = document.createElement("span");
+        titleSpan.style.fontWeight = "500";
+        titleSpan.textContent = item.film;
+
+        const fwIcon = document.createElement("img");
+        fwIcon.src = "https://www.filmweb.pl/favicon.ico";
+        fwIcon.alt = "FW";
+        fwIcon.title = "Szukaj na Filmwebie";
+        fwIcon.style.width = "16px";
+        fwIcon.style.height = "16px";
+        fwIcon.style.cursor = "pointer";
+        fwIcon.style.opacity = "0.6";
+        fwIcon.style.transition = "opacity 0.2s";
+        fwIcon.style.marginLeft = "10px";
+
+        fwIcon.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const query = encodeURIComponent(item.film);
+            window.open(`https://www.filmweb.pl/search?q=${query}`, '_blank');
+        });
+
+        fwIcon.addEventListener("mouseenter", () => fwIcon.style.opacity = "1");
+        fwIcon.addEventListener("mouseleave", () => fwIcon.style.opacity = "0.6");
+
+        tdFilm.appendChild(titleSpan);
+        tdFilm.appendChild(fwIcon);
         tr.appendChild(tdFilm);
         
         const tdRating = document.createElement("td");
@@ -740,7 +906,7 @@ function populateUsersList() {
         div.innerHTML = `<span>${user}</span>`;
         
         const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑️';
+        delBtn.textContent = '🗑';
         delBtn.className = 'btn-delete-user';
         delBtn.style.cssText = 'padding:5px 10px; background:var(--error); border:none; border-radius:3px; color:white; cursor:pointer;';
         

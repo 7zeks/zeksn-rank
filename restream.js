@@ -1,25 +1,26 @@
 class RestreamManager {
     constructor() {
-        console.log('RestreamManager (Firebase Fix) inicjalizacja');
+        console.log('RestreamManager inicjalizacja');
         
-        this.sites = [];
+        // Start z pustą tablicą lub danymi z localStorage
+        this.sites = JSON.parse(localStorage.getItem("restreamSites") || "[]");
         this.currentPath = [];
         
+        // Zmienne do obsługi Drag & Drop
         this.dragSrcIndex = null;
-        this.lastAdminState = this.isAdmin();
-
+        this.lastAdminState = this.isAdmin(); 
+        
+        // Uchwyty do elementów DOM
         this.rowsDiv = document.getElementById("restreamRows");
         this.breadcrumbsDiv = document.getElementById("breadcrumbs");
         this.addButton = document.getElementById("addRestreamRow");
         this.addFolderButton = document.getElementById("addRestreamFolder");
         
-        try {
-            this.dbRef = firebase.database().ref("restream");
-        } catch (e) {
-            console.error("Błąd połączenia z Firebase.", e);
+        if (!this.rowsDiv) {
+            console.error('Brak elementu restreamRows!');
+            return;
         }
         
-        if (!this.rowsDiv) return;
         this.init();
     }
 
@@ -27,25 +28,26 @@ class RestreamManager {
         return document.body.classList.contains('is-admin');
     }
     
-    notify(msg, type = 'info') {
-        if (typeof showNotification === 'function') showNotification(msg, type);
-        else console.log(`[${type}] ${msg}`);
-    }
-    
     init() {
-        if (this.addButton) this.addButton.onclick = () => this.addItem('link');
-        if (this.addFolderButton) this.addFolderButton.onclick = () => this.addItem('folder');
-        
-        if (this.dbRef) {
-            this.rowsDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Ładowanie...</div>';
-            
-            this.dbRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                this.sites = data || [];
-                this.render();
-            });
+        // Podpięcie przycisków dodawania
+        if (this.addButton) {
+            this.addButton.onclick = () => this.addItem('link');
         }
+        
+        if (this.addFolderButton) {
+            this.addFolderButton.onclick = () => this.addItem('folder');
+        }
+        
+        // Proste powiadomienie - próbuje użyć globalnego, jeśli dostępne
+        this.showNotification = (msg) => {
+            if (window.showNotification) {
+                window.showNotification(msg, 'success');
+            } else {
+                console.log('Notification:', msg);
+            }
+        };
 
+        // Odświeżanie widoku przy zmianie logowania
         setInterval(() => {
             const currentAdmin = this.isAdmin();
             if (this.lastAdminState !== currentAdmin) {
@@ -53,22 +55,17 @@ class RestreamManager {
                 this.render();
             }
         }, 1000);
+        
+        // Pierwsze renderowanie listy
+        this.render();
     }
     
-    // --- TUTAJ BYŁ BŁĄD, TO JEST WERSJA NAPRAWIONA ---
     getCurrentList() {
         let list = this.sites;
         for (let index of this.currentPath) {
-            // Sprawdzamy czy folder istnieje w strukturze
-            if (list[index]) {
-                // Jeśli folder jest pusty, Firebase nie odsyła pola 'children'.
-                // Musimy je wtedy utworzyć ręcznie, żeby móc do niego wejść lub coś dodać.
-                if (!list[index].children) {
-                    list[index].children = [];
-                }
+            if (list[index] && list[index].children) {
                 list = list[index].children;
             } else {
-                // Jeśli ścieżka jest błędna, wracamy na start
                 this.currentPath = [];
                 return this.sites;
             }
@@ -84,7 +81,7 @@ class RestreamManager {
         
         const currentList = this.getCurrentList();
         
-        if (!currentList || currentList.length === 0) {
+        if (currentList.length === 0) {
             this.rowsDiv.innerHTML = `
                 <div class="restream-empty-state">
                     <div class="icon">📭</div>
@@ -103,8 +100,6 @@ class RestreamManager {
     createSimpleRow(item, index) {
         const row = document.createElement("div");
         row.className = "restream-row";
-        
-        // Oryginalne style
         row.style.cssText = `
             display: flex;
             align-items: center;
@@ -117,17 +112,15 @@ class RestreamManager {
         if (item.type === 'folder') {
             row.style.background = 'rgba(139, 92, 246, 0.1)';
             row.style.borderLeft = '3px solid var(--primary)';
-        } else {
-            row.style.background = 'transparent';
-            row.style.borderLeft = 'none';
         }
 
-        // 1. IKONA (Drag Handle)
+        // --- 1. IKONA (Uchwyt do przesuwania) ---
         const iconContainer = document.createElement("div");
         iconContainer.style.fontSize = "1.5rem";
         iconContainer.style.padding = "0 10px";
         iconContainer.textContent = item.type === 'folder' ? '📂' : '🔗';
         
+        // LOGIKA ADMINA: DRAG & DROP
         if (this.isAdmin()) {
             iconContainer.style.cursor = "grab";
             iconContainer.title = "Przytrzymaj i przeciągnij (Admin)";
@@ -144,10 +137,35 @@ class RestreamManager {
             iconContainer.addEventListener('dragend', () => {
                 row.style.opacity = '1';
                 row.classList.remove('drag-active');
+                Array.from(this.rowsDiv.children).forEach(child => {
+                    child.style.borderTop = "none";
+                    child.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+                    const isFolder = child.style.borderLeft.includes('var(--primary)');
+                    child.style.background = isFolder ? 'rgba(139, 92, 246, 0.1)' : 'transparent';
+                });
                 this.render();
             });
 
-            row.addEventListener('dragover', (e) => { e.preventDefault(); return false; });
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            });
+            
+            row.addEventListener('dragenter', () => {
+                 if (index !== this.dragSrcIndex) {
+                     row.style.background = "rgba(255, 255, 255, 0.1)";
+                 }
+            });
+
+            row.addEventListener('dragleave', () => {
+                 if (item.type === 'folder') {
+                     row.style.background = 'rgba(139, 92, 246, 0.1)';
+                 } else {
+                     row.style.background = "transparent";
+                 }
+            });
+
             row.addEventListener('drop', (e) => {
                 e.stopPropagation();
                 if (this.dragSrcIndex !== index) {
@@ -159,16 +177,32 @@ class RestreamManager {
             iconContainer.style.cursor = "default";
         }
 
-        // 2. NAZWA (Klikalna)
+        // --- 2. NAZWA (Klikalna) + EDYCJA ---
         const nameContainer = document.createElement("div");
-        nameContainer.style.cssText = `flex: 1; display: flex; align-items: center; gap: 10px; overflow: hidden; padding-right: 10px;`;
+        nameContainer.style.cssText = `
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            padding-right: 10px;
+        `;
 
         const nameSpan = document.createElement("span");
         nameSpan.textContent = item.name || "Bez nazwy";
         nameSpan.style.cssText = `
-            font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            font-size: 1rem; padding: 5px; border-radius: 4px; transition: all 0.2s; cursor: pointer;
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
         `;
+        
         nameSpan.onmouseover = () => nameSpan.style.color = "var(--primary)";
         nameSpan.onmouseout = () => nameSpan.style.color = "white";
 
@@ -178,37 +212,64 @@ class RestreamManager {
             } else {
                 let url = item.url;
                 if (url) {
-                    if (!url.startsWith('http')) url = 'https://' + url;
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        url = 'https://' + url;
+                    }
                     window.open(url, '_blank');
                 }
             }
         };
         
-        // Ikonka edycji (Admin)
+        if (item.type === 'folder') {
+            nameSpan.title = "Kliknij, aby otworzyć folder";
+        } else {
+            nameSpan.title = `Kliknij, aby otworzyć: ${item.url}`;
+        }
+
+        // Ikonka edycji (tylko Admin)
         const editIcon = document.createElement("span");
         if (this.isAdmin()) {
             editIcon.textContent = "✒";
-            editIcon.style.cssText = `cursor: pointer; opacity: 0.1; font-size: 0.9rem; margin-left: auto; padding: 5px; transition: all 0.2s;`;
-            editIcon.onmouseover = (e) => { e.stopPropagation(); editIcon.style.opacity = "1"; editIcon.style.transform = "scale(1.2)"; };
-            editIcon.onmouseout = (e) => { e.stopPropagation(); editIcon.style.opacity = "0.1"; editIcon.style.transform = "scale(1)"; };
+            editIcon.style.cssText = `
+                cursor: pointer;
+                opacity: 0.1; 
+                font-size: 0.9rem;
+                margin-left: auto;
+                padding: 5px;
+                transition: all 0.2s;
+            `;
+            editIcon.title = "Zmień nazwę";
+
+            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
+            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
+
+            editIcon.onmouseover = (e) => {
+                e.stopPropagation();
+                editIcon.style.opacity = "1";
+                editIcon.style.transform = "scale(1.2)";
+            };
+            editIcon.onmouseout = (e) => {
+                e.stopPropagation();
+                editIcon.style.transform = "scale(1)";
+            };
+
             editIcon.onclick = (e) => {
                 e.stopPropagation();
                 const newName = prompt("Zmień nazwę:", item.name);
                 if (newName && newName.trim() !== "") {
                     item.name = newName.trim();
                     this.save();
+                    this.render();
                 }
             };
-            
-            // Pokazywanie ołówka po najechaniu na kontener nazwy
-            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
-            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
         }
 
         nameContainer.appendChild(nameSpan);
-        if (this.isAdmin()) nameContainer.appendChild(editIcon);
+        if (this.isAdmin()) {
+            nameContainer.appendChild(editIcon);
+        }
 
-        // 3. URL / INFO
+        // --- 3. KOLUMNA URL / INFO ---
         const urlCol = document.createElement("div");
         urlCol.style.flex = "2";
         
@@ -220,21 +281,60 @@ class RestreamManager {
             info.style.fontSize = '0.9rem';
             urlCol.appendChild(info);
         } else {
+            // INPUT URL (Admin)
             if (this.isAdmin()) {
                 const urlInput = document.createElement("input");
                 urlInput.type = "text";
                 urlInput.value = item.url || "";
                 urlInput.style.cssText = `
-                    width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-                    color: rgba(255,255,255,0.9); border-radius: 6px; font-family: inherit; font-size: 0.9rem;
+                    width: 100%;
+                    padding: 8px 12px;
+                    background: rgba(0,0,0,0.3);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: rgba(255,255,255,0.9);
+                    border-radius: 6px;
+                    font-family: inherit;
+                    font-size: 0.9rem;
                 `;
                 urlInput.placeholder = "https://...";
-                urlInput.onchange = (e) => {
+                
+                // === AUTOMATYCZNE POBIERANIE TYTUŁU ===
+                urlInput.oninput = (e) => {
                     item.url = e.target.value;
                     this.save();
                 };
+
+                // Pobieramy tytuł dopiero po zakończeniu edycji (Enter lub kliknięcie poza)
+                urlInput.onchange = async (e) => {
+                    const url = e.target.value;
+                    
+                    // Sprawdzamy czy jest URL i czy nazwa jest domyślna
+                    if (url.length > 8 && (item.name === "Nowa strona" || item.name.startsWith("Nowa strona"))) {
+                        
+                        // Wizualizacja ładowania
+                        nameSpan.textContent = "⏳ Pobieranie tytułu...";
+                        nameSpan.style.opacity = "0.7";
+
+                        const title = await this.fetchPageTitle(url);
+
+                        if (title) {
+                            item.name = title.trim();
+                            this.showNotification(`Nazwano: ${item.name}`);
+                        } else {
+                            if (nameSpan.textContent.includes("⏳")) {
+                                nameSpan.textContent = item.name; 
+                            }
+                        }
+                        
+                        nameSpan.style.opacity = "1";
+                        this.save();
+                        this.render(); 
+                    }
+                };
+
                 urlCol.appendChild(urlInput);
             } else {
+                // TEXT URL (Gość)
                 const urlText = document.createElement("span");
                 urlText.textContent = item.url;
                 urlText.style.color = "rgba(255,255,255,0.5)";
@@ -243,7 +343,7 @@ class RestreamManager {
             }
         }
         
-        // 4. PRZYCISK USUWANIA
+        // --- 4. PRZYCISK USUWANIA ---
         row.appendChild(iconContainer);
         row.appendChild(nameContainer);
         row.appendChild(urlCol);
@@ -252,16 +352,28 @@ class RestreamManager {
             const deleteBtn = document.createElement("button");
             deleteBtn.textContent = "🗑";
             deleteBtn.style.cssText = `
-                padding: 8px 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);
-                border-radius: 6px; cursor: pointer; transition: all 0.2s;
+                padding: 8px 12px;
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
             `;
-            deleteBtn.onmouseover = () => { deleteBtn.style.background = "rgba(239, 68, 68, 0.3)"; deleteBtn.style.transform = "scale(1.05)"; };
-            deleteBtn.onmouseout = () => { deleteBtn.style.background = "rgba(239, 68, 68, 0.1)"; deleteBtn.style.transform = "scale(1)"; };
+            deleteBtn.onmouseover = () => {
+                deleteBtn.style.background = "rgba(239, 68, 68, 0.3)";
+                deleteBtn.style.transform = "scale(1.05)";
+            };
+            deleteBtn.onmouseout = () => {
+                deleteBtn.style.background = "rgba(239, 68, 68, 0.1)";
+                deleteBtn.style.transform = "scale(1)";
+            };
             deleteBtn.onclick = () => {
                 if (confirm(`Usunąć "${item.name}"?`)) {
                     const list = this.getCurrentList();
                     list.splice(index, 1);
                     this.save();
+                    this.render();
                 }
             };
             row.appendChild(deleteBtn);
@@ -279,6 +391,7 @@ class RestreamManager {
         const [movedItem] = list.splice(fromIndex, 1);
         list.splice(toIndex, 0, movedItem);
         this.save();
+        this.render();
     }
     
     renderBreadcrumbs() {
@@ -288,14 +401,14 @@ class RestreamManager {
         
         let pathRef = this.sites;
         this.currentPath.forEach((folderIndex, i) => {
-            if(pathRef[folderIndex]) {
-                const folder = pathRef[folderIndex];
+            const folder = pathRef[folderIndex];
+            if (folder) {
                 const isActive = (i === this.currentPath.length - 1);
                 html += ` <span class="separator">/</span> 
                           <span class="crumb ${isActive ? 'active' : ''}" onclick="window.restreamManager.navigateTo(${i})">
                             📂 ${folder.name}
                           </span>`;
-                pathRef = folder.children || [];
+                pathRef = folder.children;
             }
         });
         
@@ -318,11 +431,12 @@ class RestreamManager {
     
     addItem(type) {
         if (!this.isAdmin()) {
-            this.notify("🔒 Zaloguj się jako admin!", "error");
+            alert("🔒 Zaloguj się jako admin!");
             return;
         }
 
-        const list = this.getCurrentList(); // Teraz to na pewno zwróci poprawną tablicę
+        console.log('Dodawanie elementu typu:', type);
+        const list = this.getCurrentList();
         
         if (type === 'folder') {
             list.push({
@@ -330,33 +444,65 @@ class RestreamManager {
                 name: 'Nowy Folder',
                 children: []
             });
-            this.notify('Dodano folder', 'success');
+            this.showNotification('Dodano folder');
         } else {
             list.push({
                 type: 'link',
                 name: 'Nowa strona',
                 url: 'https://'
             });
-            this.notify('Dodano stronę', 'success');
+            this.showNotification('Dodano stronę');
         }
         
         this.save();
+        this.render();
     }
     
     save() {
-        if (this.dbRef) {
-            this.dbRef.set(this.sites).catch(err => {
-                console.error(err);
-                this.notify("Błąd zapisu w chmurze", "error");
-            });
+        localStorage.setItem("restreamSites", JSON.stringify(this.sites));
+        console.log('Zapisano do localStorage:', this.sites);
+    }
+
+    // --- NOWA, SZYBSZA METODA: Pobieranie tytułu strony ---
+    async fetchPageTitle(url) {
+        if (!url.startsWith('http')) return null;
+
+        // 1. SPOSÓB SZYBKI (NoEmbed) - Idealny dla YouTube, Twitch, Vimeo, TikTok etc.
+        try {
+            // NoEmbed zwraca JSON, jest lekki i bardzo szybki
+            const fastApiUrl = `https://noembed.com/embed?url=${encodeURIComponent(url)}`;
+            const response = await fetch(fastApiUrl);
+            const data = await response.json();
+            
+            // Jeśli NoEmbed znalazł tytuł, zwracamy go od razu
+            if (data.title) {
+                console.log("Użyto szybkiego pobierania (NoEmbed)");
+                return data.title;
+            }
+        } catch (e) {
+            // Ignorujemy błąd, przechodzimy do sposobu wolnego
         }
+
+        // 2. SPOSÓB WOLNY (Fallback) - Dla zwykłych stron internetowych
+        // Używamy innego proxy (codetabs), które często jest szybsze niż allorigins
+        try {
+            console.log("Przełączanie na tryb HTML (wolniejszy)...");
+            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            const text = await response.text();
+            
+            // Szukamy tagu <title> w pobranym HTMLu
+            const doc = new DOMParser().parseFromString(text, "text/html");
+            return doc.title || null;
+        } catch (error) {
+            console.error("Nie udało się pobrać tytułu żadną metodą:", error);
+        }
+        return null;
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById("restreamRows")) {
-        setTimeout(() => {
-            window.restreamManager = new RestreamManager();
-        }, 500);
+        window.restreamManager = new RestreamManager();
     }
 });

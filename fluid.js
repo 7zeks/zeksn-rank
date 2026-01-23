@@ -1615,7 +1615,7 @@ function getTextureScale (texture, width, height) {
 
 function scaleByPixelRatio (input) {
     let pixelRatio = window.devicePixelRatio || 1;
-    return Math.floor(input * pixelRatio);
+    return Math.floor(input * (pixelRatio > 1 ? 1 : pixelRatio));
 }
 
 function hashCode (s) {

@@ -1,16 +1,18 @@
 class RestreamManager {
     constructor() {
-        console.log('RestreamManager inicjalizacja');
+        console.log('RestreamManager (Firebase Mode) inicjalizacja');
         
-        // Start z pustą tablicą lub danymi z localStorage
-        this.sites = JSON.parse(localStorage.getItem("restreamSites") || "[]");
+        // Zamiast localStorage, zaczynamy z pustą tablicą
+        this.sites = [];
         this.currentPath = [];
         
-        // Zmienne do obsługi Drag & Drop
+        // Referencja do bazy danych
+        this.dbRef = firebase.database().ref("restream_structure");
+        
+        // Zmienne do obsługi Drag & Drop i UI
         this.dragSrcIndex = null;
         this.lastAdminState = this.isAdmin(); 
         
-        // Uchwyty do elementów DOM
         this.rowsDiv = document.getElementById("restreamRows");
         this.breadcrumbsDiv = document.getElementById("breadcrumbs");
         this.addButton = document.getElementById("addRestreamRow");
@@ -30,24 +32,24 @@ class RestreamManager {
     
     init() {
         // Podpięcie przycisków dodawania
-        if (this.addButton) {
-            this.addButton.onclick = () => this.addItem('link');
-        }
+        if (this.addButton) this.addButton.onclick = () => this.addItem('link');
+        if (this.addFolderButton) this.addFolderButton.onclick = () => this.addItem('folder');
         
-        if (this.addFolderButton) {
-            this.addFolderButton.onclick = () => this.addItem('folder');
-        }
-        
-        // Proste powiadomienie - próbuje użyć globalnego, jeśli dostępne
+        // Powiadomienia
         this.showNotification = (msg) => {
-            if (window.showNotification) {
-                window.showNotification(msg, 'success');
-            } else {
-                console.log('Notification:', msg);
-            }
+            if (window.showNotification) window.showNotification(msg, 'success');
+            else console.log('Notification:', msg);
         };
 
-        // Odświeżanie widoku przy zmianie logowania
+        // Nasłuchiwanie zmian w bazie Firebase (to zastępuje localStorage.getItem)
+        this.dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            // Jeśli baza jest pusta, ustawiamy pustą tablicę. Jeśli są dane, przypisujemy je.
+            this.sites = data || [];
+            this.render();
+        });
+
+        // Odświeżanie widoku przy zmianie uprawnień (Admin/Gość)
         setInterval(() => {
             const currentAdmin = this.isAdmin();
             if (this.lastAdminState !== currentAdmin) {
@@ -55,20 +57,47 @@ class RestreamManager {
                 this.render();
             }
         }, 1000);
-        
-        // Pierwsze renderowanie listy
-        this.render();
     }
+    
+    // --- ZAPIS DO FIREBASE ---
+    save() {
+        // Zapisujemy całą strukturę this.sites do Firebase
+        this.dbRef.set(this.sites)
+            .then(() => console.log('Zapisano strukturę do Firebase'))
+            .catch(err => console.error('Błąd zapisu do Firebase:', err));
+    }
+
+    // Reszta funkcji pozostaje bez zmian logicznych, ale korzysta z this.sites zaktualizowanego przez Firebase
     
     getCurrentList() {
         let list = this.sites;
-        for (let index of this.currentPath) {
-            if (list[index] && list[index].children) {
-                list = list[index].children;
-            } else {
+        
+        // Jeśli z jakiegoś powodu główna lista nie istnieje, zwróć pustą tablicę
+        if (!list) {
+            this.sites = [];
+            return this.sites;
+        }
+
+        // Pętla po ścieżce (nawigacja w głąb folderów)
+        for (let i = 0; i < this.currentPath.length; i++) {
+            const index = this.currentPath[i];
+
+            // Zabezpieczenie: Czy element o tym indeksie w ogóle istnieje?
+            if (!list[index]) {
+                console.warn("Błędna ścieżka - resetuję widok");
                 this.currentPath = [];
                 return this.sites;
             }
+
+            // === KLUCZOWA POPRAWKA ===
+            // Jeśli element nie ma tablicy 'children' (bo jest pusty w Firebase),
+            // tworzymy ją teraz ręcznie, zamiast resetować widok.
+            if (typeof list[index].children === 'undefined') {
+                list[index].children = [];
+            }
+
+            // Wchodzimy poziom głębiej
+            list = list[index].children;
         }
         return list;
     }
@@ -80,6 +109,12 @@ class RestreamManager {
         this.renderBreadcrumbs();
         
         const currentList = this.getCurrentList();
+        
+        // Jeśli lista nie istnieje (np. błąd synchronizacji), traktuj jako pustą
+        if (!currentList) {
+             this.rowsDiv.innerHTML = `<div class="restream-empty-state">...</div>`;
+             return;
+        }
         
         if (currentList.length === 0) {
             this.rowsDiv.innerHTML = `
@@ -93,7 +128,7 @@ class RestreamManager {
         }
         
         currentList.forEach((item, index) => {
-            this.createSimpleRow(item, index);
+            if(item) this.createSimpleRow(item, index);
         });
     }
     
@@ -101,12 +136,9 @@ class RestreamManager {
         const row = document.createElement("div");
         row.className = "restream-row";
         row.style.cssText = `
-            display: flex;
-            align-items: center;
-            padding: 15px;
+            display: flex; align-items: center; padding: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            gap: 15px;
-            transition: background 0.2s, transform 0.2s;
+            gap: 15px; transition: background 0.2s, transform 0.2s;
         `;
         
         if (item.type === 'folder') {
@@ -114,13 +146,12 @@ class RestreamManager {
             row.style.borderLeft = '3px solid var(--primary)';
         }
 
-        // --- 1. IKONA (Uchwyt do przesuwania) ---
+        // --- 1. IKONA ---
         const iconContainer = document.createElement("div");
         iconContainer.style.fontSize = "1.5rem";
         iconContainer.style.padding = "0 10px";
         iconContainer.textContent = item.type === 'folder' ? '📂' : '🔗';
         
-        // LOGIKA ADMINA: DRAG & DROP
         if (this.isAdmin()) {
             iconContainer.style.cursor = "grab";
             iconContainer.title = "Przytrzymaj i przeciągnij (Admin)";
@@ -137,250 +168,121 @@ class RestreamManager {
             iconContainer.addEventListener('dragend', () => {
                 row.style.opacity = '1';
                 row.classList.remove('drag-active');
-                Array.from(this.rowsDiv.children).forEach(child => {
-                    child.style.borderTop = "none";
-                    child.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
-                    const isFolder = child.style.borderLeft.includes('var(--primary)');
-                    child.style.background = isFolder ? 'rgba(139, 92, 246, 0.1)' : 'transparent';
-                });
-                this.render();
+                this.render(); // Prerenderowanie czyści style drag
             });
 
-            row.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
-                e.dataTransfer.dropEffect = 'move';
-                return false;
-            });
+            // Obsługa upuszczania (Drop)
+            const parentList = this.rowsDiv; // kontener
             
-            row.addEventListener('dragenter', () => {
-                 if (index !== this.dragSrcIndex) {
-                     row.style.background = "rgba(255, 255, 255, 0.1)";
-                 }
-            });
-
-            row.addEventListener('dragleave', () => {
-                 if (item.type === 'folder') {
-                     row.style.background = 'rgba(139, 92, 246, 0.1)';
-                 } else {
-                     row.style.background = "transparent";
-                 }
+            row.addEventListener('dragover', (e) => { e.preventDefault(); return false; });
+            row.addEventListener('dragenter', () => { if (index !== this.dragSrcIndex) row.style.background = "rgba(255, 255, 255, 0.1)"; });
+            row.addEventListener('dragleave', () => { 
+                if (item.type === 'folder') row.style.background = 'rgba(139, 92, 246, 0.1)';
+                else row.style.background = "transparent";
             });
 
             row.addEventListener('drop', (e) => {
                 e.stopPropagation();
-                if (this.dragSrcIndex !== index) {
+                if (this.dragSrcIndex !== index && this.dragSrcIndex !== null) {
                     this.reorderItems(this.dragSrcIndex, index);
                 }
                 return false;
             });
-        } else {
-            iconContainer.style.cursor = "default";
         }
 
-        // --- 2. NAZWA (Klikalna) + EDYCJA ---
+        // --- 2. NAZWA ---
         const nameContainer = document.createElement("div");
-        nameContainer.style.cssText = `
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            overflow: hidden;
-            padding-right: 10px;
-        `;
+        nameContainer.style.cssText = "flex: 1; display: flex; align-items: center; gap: 10px; overflow: hidden; padding-right: 10px;";
 
         const nameSpan = document.createElement("span");
         nameSpan.textContent = item.name || "Bez nazwy";
-        nameSpan.style.cssText = `
-            font-weight: 500;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 1rem;
-            padding: 5px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            cursor: pointer;
-        `;
+        nameSpan.className = "restream-name-clickable"; // Klasa pomocnicza dla CSS
+        nameSpan.style.cssText = "font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1rem; padding: 5px; cursor: pointer;";
         
-        nameSpan.onmouseover = () => nameSpan.style.color = "var(--primary)";
-        nameSpan.onmouseout = () => nameSpan.style.color = "white";
-
         nameSpan.onclick = () => {
-            if (item.type === 'folder') {
-                this.enterFolder(index);
-            } else {
+            if (item.type === 'folder') this.enterFolder(index);
+            else {
                 let url = item.url;
-                if (url) {
-                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'https://' + url;
-                    }
-                    window.open(url, '_blank');
-                }
+                if (url && !url.startsWith('http')) url = 'https://' + url;
+                if (url) window.open(url, '_blank');
             }
         };
-        
-        if (item.type === 'folder') {
-            nameSpan.title = "Kliknij, aby otworzyć folder";
-        } else {
-            nameSpan.title = `Kliknij, aby otworzyć: ${item.url}`;
-        }
 
-        // Ikonka edycji (tylko Admin)
         const editIcon = document.createElement("span");
         if (this.isAdmin()) {
             editIcon.textContent = "✒";
-            editIcon.style.cssText = `
-                cursor: pointer;
-                opacity: 0.1; 
-                font-size: 0.9rem;
-                margin-left: auto;
-                padding: 5px;
-                transition: all 0.2s;
-            `;
-            editIcon.title = "Zmień nazwę";
-
-            nameContainer.onmouseover = () => { editIcon.style.opacity = "0.5"; };
-            nameContainer.onmouseout = () => { editIcon.style.opacity = "0.1"; };
-
-            editIcon.onmouseover = (e) => {
-                e.stopPropagation();
-                editIcon.style.opacity = "1";
-                editIcon.style.transform = "scale(1.2)";
-            };
-            editIcon.onmouseout = (e) => {
-                e.stopPropagation();
-                editIcon.style.transform = "scale(1)";
-            };
-
+            editIcon.style.cssText = "cursor: pointer; opacity: 0.2; font-size: 0.9rem; margin-left: auto; padding: 5px;";
+            nameContainer.onmouseover = () => editIcon.style.opacity = "0.8";
+            nameContainer.onmouseout = () => editIcon.style.opacity = "0.2";
+            
             editIcon.onclick = (e) => {
                 e.stopPropagation();
                 const newName = prompt("Zmień nazwę:", item.name);
                 if (newName && newName.trim() !== "") {
                     item.name = newName.trim();
                     this.save();
-                    this.render();
                 }
             };
         }
 
         nameContainer.appendChild(nameSpan);
-        if (this.isAdmin()) {
-            nameContainer.appendChild(editIcon);
-        }
+        if (this.isAdmin()) nameContainer.appendChild(editIcon);
 
-        // --- 3. KOLUMNA URL / INFO ---
+        // --- 3. URL / INFO ---
         const urlCol = document.createElement("div");
         urlCol.style.flex = "2";
         
         if (item.type === 'folder') {
             const count = item.children ? item.children.length : 0;
-            const info = document.createElement("span");
-            info.textContent = `${count} elementów`;
-            info.style.color = 'rgba(255,255,255,0.6)';
-            info.style.fontSize = '0.9rem';
-            urlCol.appendChild(info);
+            urlCol.innerHTML = `<span style="color:rgba(255,255,255,0.6); font-size:0.9rem">${count} elementów</span>`;
         } else {
-            // INPUT URL (Admin)
             if (this.isAdmin()) {
                 const urlInput = document.createElement("input");
                 urlInput.type = "text";
                 urlInput.value = item.url || "";
-                urlInput.style.cssText = `
-                    width: 100%;
-                    padding: 8px 12px;
-                    background: rgba(0,0,0,0.3);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: rgba(255,255,255,0.9);
-                    border-radius: 6px;
-                    font-family: inherit;
-                    font-size: 0.9rem;
-                `;
-                urlInput.placeholder = "https://...";
+                urlInput.style.cssText = "width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); border-radius: 6px;";
                 
-                // === AUTOMATYCZNE POBIERANIE TYTUŁU ===
                 urlInput.oninput = (e) => {
                     item.url = e.target.value;
+                    // Debounce save mógłby być tu przydatny, ale przy oninput lepiej zapisać przy onchange
+                };
+                urlInput.onchange = async (e) => {
+                    item.url = e.target.value;
+                    
+                    // Auto-tytuł
+                    if (item.url.length > 8 && (item.name.startsWith("Nowa strona"))) {
+                        nameSpan.textContent = "⏳...";
+                        const title = await this.fetchPageTitle(item.url);
+                        if (title) item.name = title.trim();
+                        this.render();
+                    }
                     this.save();
                 };
-
-                // Pobieramy tytuł dopiero po zakończeniu edycji (Enter lub kliknięcie poza)
-                urlInput.onchange = async (e) => {
-                    const url = e.target.value;
-                    
-                    // Sprawdzamy czy jest URL i czy nazwa jest domyślna
-                    if (url.length > 8 && (item.name === "Nowa strona" || item.name.startsWith("Nowa strona"))) {
-                        
-                        // Wizualizacja ładowania
-                        nameSpan.textContent = "⏳ Pobieranie tytułu...";
-                        nameSpan.style.opacity = "0.7";
-
-                        const title = await this.fetchPageTitle(url);
-
-                        if (title) {
-                            item.name = title.trim();
-                            this.showNotification(`Nazwano: ${item.name}`);
-                        } else {
-                            if (nameSpan.textContent.includes("⏳")) {
-                                nameSpan.textContent = item.name; 
-                            }
-                        }
-                        
-                        nameSpan.style.opacity = "1";
-                        this.save();
-                        this.render(); 
-                    }
-                };
-
                 urlCol.appendChild(urlInput);
             } else {
-                // TEXT URL (Gość)
-                const urlText = document.createElement("span");
-                urlText.textContent = item.url;
-                urlText.style.color = "rgba(255,255,255,0.5)";
-                urlText.style.fontSize = "0.9rem";
-                urlCol.appendChild(urlText);
+                urlCol.innerHTML = `<span style="color:rgba(255,255,255,0.5); font-size:0.9rem">${item.url}</span>`;
             }
         }
         
-        // --- 4. PRZYCISK USUWANIA ---
+        // --- 4. USUWANIE ---
         row.appendChild(iconContainer);
         row.appendChild(nameContainer);
         row.appendChild(urlCol);
 
         if (this.isAdmin()) {
             const deleteBtn = document.createElement("button");
+            deleteBtn.className = "restream-delete-btn";
             deleteBtn.textContent = "🗑";
-            deleteBtn.style.cssText = `
-                padding: 8px 12px;
-                background: rgba(239, 68, 68, 0.1);
-                color: #ef4444;
-                border: 1px solid rgba(239, 68, 68, 0.3);
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.2s;
-            `;
-            deleteBtn.onmouseover = () => {
-                deleteBtn.style.background = "rgba(239, 68, 68, 0.3)";
-                deleteBtn.style.transform = "scale(1.05)";
-            };
-            deleteBtn.onmouseout = () => {
-                deleteBtn.style.background = "rgba(239, 68, 68, 0.1)";
-                deleteBtn.style.transform = "scale(1)";
-            };
             deleteBtn.onclick = () => {
                 if (confirm(`Usunąć "${item.name}"?`)) {
                     const list = this.getCurrentList();
                     list.splice(index, 1);
                     this.save();
-                    this.render();
                 }
             };
             row.appendChild(deleteBtn);
         } else {
-             const dummy = document.createElement("div");
-             dummy.style.width = "40px";
-             row.appendChild(dummy);
+             row.appendChild(document.createElement("div")); // Spacer
         }
         
         this.rowsDiv.appendChild(row);
@@ -391,18 +293,17 @@ class RestreamManager {
         const [movedItem] = list.splice(fromIndex, 1);
         list.splice(toIndex, 0, movedItem);
         this.save();
-        this.render();
     }
     
     renderBreadcrumbs() {
         if (!this.breadcrumbsDiv) return;
-        
         let html = `<span class="crumb ${this.currentPath.length === 0 ? 'active' : ''}" onclick="window.restreamManager.navigateTo(-1)">🏠 Główna</span>`;
         
         let pathRef = this.sites;
         this.currentPath.forEach((folderIndex, i) => {
-            const folder = pathRef[folderIndex];
-            if (folder) {
+            // Sprawdzenie czy folder nadal istnieje w strukturze
+            if (pathRef && pathRef[folderIndex]) {
+                const folder = pathRef[folderIndex];
                 const isActive = (i === this.currentPath.length - 1);
                 html += ` <span class="separator">/</span> 
                           <span class="crumb ${isActive ? 'active' : ''}" onclick="window.restreamManager.navigateTo(${i})">
@@ -411,16 +312,12 @@ class RestreamManager {
                 pathRef = folder.children;
             }
         });
-        
         this.breadcrumbsDiv.innerHTML = html;
     }
     
     navigateTo(pathIndex) {
-        if (pathIndex === -1) {
-            this.currentPath = [];
-        } else {
-            this.currentPath = this.currentPath.slice(0, pathIndex + 1);
-        }
+        if (pathIndex === -1) this.currentPath = [];
+        else this.currentPath = this.currentPath.slice(0, pathIndex + 1);
         this.render();
     }
     
@@ -435,68 +332,38 @@ class RestreamManager {
             return;
         }
 
-        console.log('Dodawanie elementu typu:', type);
         const list = this.getCurrentList();
         
+        // Inicjalizacja tablicy jeśli nie istnieje (np. nowy pusty folder)
+        if (!list) return;
+
         if (type === 'folder') {
-            list.push({
-                type: 'folder',
-                name: 'Nowy Folder',
-                children: []
-            });
+            list.push({ type: 'folder', name: 'Nowy Folder', children: [] });
             this.showNotification('Dodano folder');
         } else {
-            list.push({
-                type: 'link',
-                name: 'Nowa strona',
-                url: 'https://'
-            });
+            list.push({ type: 'link', name: 'Nowa strona', url: 'https://' });
             this.showNotification('Dodano stronę');
         }
         
         this.save();
-        this.render();
-    }
-    
-    save() {
-        localStorage.setItem("restreamSites", JSON.stringify(this.sites));
-        console.log('Zapisano do localStorage:', this.sites);
     }
 
-    // --- NOWA, SZYBSZA METODA: Pobieranie tytułu strony ---
     async fetchPageTitle(url) {
         if (!url.startsWith('http')) return null;
-
-        // 1. SPOSÓB SZYBKI (NoEmbed) - Idealny dla YouTube, Twitch, Vimeo, TikTok etc.
         try {
-            // NoEmbed zwraca JSON, jest lekki i bardzo szybki
             const fastApiUrl = `https://noembed.com/embed?url=${encodeURIComponent(url)}`;
             const response = await fetch(fastApiUrl);
             const data = await response.json();
-            
-            // Jeśli NoEmbed znalazł tytuł, zwracamy go od razu
-            if (data.title) {
-                console.log("Użyto szybkiego pobierania (NoEmbed)");
-                return data.title;
-            }
-        } catch (e) {
-            // Ignorujemy błąd, przechodzimy do sposobu wolnego
-        }
-
-        // 2. SPOSÓB WOLNY (Fallback) - Dla zwykłych stron internetowych
-        // Używamy innego proxy (codetabs), które często jest szybsze niż allorigins
+            if (data.title) return data.title;
+        } catch (e) {}
+        
         try {
-            console.log("Przełączanie na tryb HTML (wolniejszy)...");
             const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
             const response = await fetch(proxyUrl);
             const text = await response.text();
-            
-            // Szukamy tagu <title> w pobranym HTMLu
             const doc = new DOMParser().parseFromString(text, "text/html");
             return doc.title || null;
-        } catch (error) {
-            console.error("Nie udało się pobrać tytułu żadną metodą:", error);
-        }
+        } catch (error) { console.error(error); }
         return null;
     }
 }

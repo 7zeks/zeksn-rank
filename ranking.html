@@ -16,6 +16,7 @@
 
 <body class="ranking-page">
     <canvas id="fluid-canvas"></canvas>
+    <div class="content content--canvas"></div>
 
     <div class="theme-switcher">
         <div class="theme-dot" data-theme="original" style="--dot-color: #8b5cf6;" title="Oryginalny"></div>
@@ -30,7 +31,7 @@
     <div class="container">
 
         <header class="header">
-            <h1>Ranking Filmów</h1>
+            <h1>classifica</h1>
             <p>Zestawienie wszystkich ocenianych produkcji</p>
         </header>
 
@@ -46,7 +47,7 @@
                 <thead>
                     <tr>
                         <th data-sort="film">🎭 Film/Serial</th>
-                        <th data-sort="rating">⭐ Ocena</th>
+                        <th data-sort="rating">🎖️ Ocena</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,8 +63,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/noise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/util.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/swirl.js"></script>
 
     <script src="fluid.js">
     </script>    <script src="app.js"></script>

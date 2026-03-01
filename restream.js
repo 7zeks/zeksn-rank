@@ -297,7 +297,7 @@ class RestreamManager {
     
     renderBreadcrumbs() {
         if (!this.breadcrumbsDiv) return;
-        let html = `<span class="crumb ${this.currentPath.length === 0 ? 'active' : ''}" onclick="window.restreamManager.navigateTo(-1)">🏠 Główna</span>`;
+        let html = `<span class="crumb ${this.currentPath.length === 0 ? 'active' : ''}" onclick="window.restreamManager.navigateTo(-1)">📜 Główna</span>`;
         
         let pathRef = this.sites;
         this.currentPath.forEach((folderIndex, i) => {
@@ -307,7 +307,7 @@ class RestreamManager {
                 const isActive = (i === this.currentPath.length - 1);
                 html += ` <span class="separator">/</span> 
                           <span class="crumb ${isActive ? 'active' : ''}" onclick="window.restreamManager.navigateTo(${i})">
-                            📂 ${folder.name}
+                            🗂️ ${folder.name}
                           </span>`;
                 pathRef = folder.children;
             }

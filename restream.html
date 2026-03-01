@@ -16,6 +16,7 @@
 
 <body>
     <canvas id="fluid-canvas"></canvas>
+    <div class="content content--canvas"></div>
 
     <div class="theme-switcher">
         <div class="theme-dot" data-theme="original" style="--dot-color: #8b5cf6;" title="Oryginalny"></div>
@@ -29,7 +30,7 @@
 
     <div class="container">
         <header class="header">
-            <h1>Restream</h1>
+            <h1>ritrasmettere</h1>
             <p>Panel zarządzania linkami i folderami</p>
         </header>
 
@@ -42,7 +43,7 @@
         <!-- Zmieniony kontener z odpowiednimi klasami -->
         <div class="restream-table">
             <div id="breadcrumbs" class="breadcrumbs-bar">
-                <span class="crumb active">🏠 Główna</span>
+                <span class="crumb active">𖠿 Główna</span>
             </div>
 
             <!-- Tylko kontener na wiersze, bez nagłówków -->
@@ -51,10 +52,10 @@
 
         <div class="actions-container">
             <button id="addRestreamFolder" class="add-site-btn folder-btn">
-                📂 Dodaj folder
+                🗃️ Dodaj folder
             </button>
             <button id="addRestreamRow" class="add-site-btn">
-                ➕ Dodaj stronę
+                ⊹ Dodaj stronę
             </button>
         </div>
     </div>
@@ -65,8 +66,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/noise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/util.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/swirl.js"></script>
 
     <script src="fluid.js"></script>    
     <script src="app.js"></script>

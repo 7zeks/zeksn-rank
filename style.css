@@ -294,6 +294,8 @@ body:not(.is-admin) .restream-row {
     filter: none !important;
 }
 
+
+
 /* Responsywność Ogólna */
 @media (max-width: 768px) {
     .nav-container { flex-direction: column; align-items: center; padding: 15px; }

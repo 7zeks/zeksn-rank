@@ -303,3 +303,50 @@ body:not(.is-admin) .restream-row {
     .header h1 { font-size: 2rem; }
     .theme-switcher { right: 10px; padding: 15px 8px; }
 }
+
+/* ===== PRZYCISKI SCROLLOWANIA ===== */
+.scroll-btn {
+    position: fixed;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: rgba(15, 15, 25, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--primary);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 999;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+.scroll-btn:hover {
+    background: var(--surface-hover);
+    color: white;
+    box-shadow: 0 0 15px var(--primary-glow);
+    transform: translateY(0) scale(1.1);
+}
+
+.scroll-btn.visible {
+    opacity: 0.55;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Pozycjonowanie, żeby nie nachodziły na przycisk logowania */
+#scrollUpBtn {
+    bottom: 130px; 
+}
+
+#scrollDownBtn {
+    bottom: 80px; 
+}

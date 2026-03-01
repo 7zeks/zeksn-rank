@@ -56,6 +56,7 @@ function initApp() {
     // 1. Wspólne dla wszystkich stron (Motywy)
     loadSavedTheme();
     setupThemeChanger();
+    setupScrollButtons();
 
     // 2. Logika dla Strony Głównej (Index)
     if (isMainPage) {
@@ -171,12 +172,12 @@ function setupAddUserButton() {
     
     // POPRAWKA: Listenery dodajemy PO wstawieniu HTML
     document.getElementById('addUserBtn').addEventListener('click', () => {
-        if (!isAdmin) return showNotification("🔒 Tylko admin może dodawać użytkowników", "error");
+        if (!isAdmin) return showNotification("🔒 admin only", "error");
         showAddUserModal();
     });
 
     document.getElementById('manageUsersBtn').addEventListener('click', () => {
-        if (!isAdmin) return showNotification("🔒 Tylko admin może zarządzać", "error");
+        if (!isAdmin) return showNotification("🔒 admin only", "error");
         showManageUsersModal();
     });
 }
@@ -264,7 +265,7 @@ function handleNextStep() {
 async function handleSaveRating() {
     // ---> BLOKADA DLA GOŚCI <---
     if (!isAdmin) {
-        showNotification("🔒 Zaloguj się, aby dodawać oceny!", "error");
+        showNotification("🔒 Log in", "error");
         return; 
     }
 
@@ -390,7 +391,7 @@ function renderFullTable() {
             e.preventDefault();
             // ---> BLOKADA <---
             if (!isAdmin) {
-                showNotification("🔒 Edycja tylko dla admina", "error");
+                showNotification("admin", "error");
                 return;
             }
             showRatingDetails(item); // Wywołanie menu kontekstowego
@@ -803,6 +804,56 @@ function populateUsersList() {
         list.appendChild(div);
     });
 }
+
+// ============================================================
+// SEKCJA 5: SCROLLOWANIE (STRZAŁKI)
+// ============================================================
+
+function setupScrollButtons() {
+    // Wstrzyknięcie HTML dla przycisków
+    const scrollHTML = `
+        <div id="scrollDownBtn" class="scroll-btn" title="Down">↓</div>
+        <div id="scrollUpBtn" class="scroll-btn" title="Up">↑</div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', scrollHTML);
+
+    const scrollUpBtn = document.getElementById('scrollUpBtn');
+    const scrollDownBtn = document.getElementById('scrollDownBtn');
+
+    // Logika kliknięć (płynne przewijanie)
+    scrollUpBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    scrollDownBtn.addEventListener('click', () => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+
+    // Logika widoczności podczas scrollowania
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        // Obliczamy ile można maksymalnie przescrollować stronę
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+        // Przycisk "W górę" pojawia się po zjechaniu 200px w dół
+        if (scrollY > 200) {
+            scrollUpBtn.classList.add('visible');
+        } else {
+            scrollUpBtn.classList.remove('visible');
+        }
+
+        // Przycisk "W dół" znika, gdy jesteśmy na samym dole (margines 50px)
+        if (scrollY < maxScroll - 50) {
+            scrollDownBtn.classList.add('visible');
+        } else {
+            scrollDownBtn.classList.remove('visible');
+        }
+    });
+
+    // Odpalamy raz na starcie, żeby ustawić początkową widoczność
+    window.dispatchEvent(new Event('scroll'));
+}
+
 
 // ----------------------------
 // UTILS

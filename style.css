@@ -22,23 +22,54 @@
 /* Global Reset */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+
+
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    background-color: #000;
+    background-color: var(--background, #0f0f1f);
     color: var(--text);
     padding: 20px;
     min-height: 100vh;
     font-weight: 400;
     line-height: 1.5;
     font-size: 14px;
-    transition: all 0.3s ease;    
+    transition: background-color 0.8s ease;
     overflow-x: hidden;
+    
 }
-body::before { display: none; }
+
+/* Nasze oryginalne, ostre fioletowe światło */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.15) 0%, rgba(64, 147, 193, 0.05) 50%, transparent 80%);
+    z-index: -1;
+    pointer-events: none;
+    display: none;
+    
+    /* Magia: zmieniamy kolor światła filtrem, tak samo jak cząsteczki! */
+    filter: var(--theme-filter, none);
+    transition: filter 0.8s ease-in-out;
+}
+
+
 
 #fluid-canvas {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     display: block; z-index: -1; pointer-events: auto;
+    mix-blend-mode: screen; 
+}
+
+.content--canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -2;
+    filter: var(--particle-filter, none);
+    transition: filter 1.2s ease-in-out !important;
+    pointer-events: none;
 }
 
 .container { 
@@ -53,22 +84,51 @@ body::before { display: none; }
 
 /* Nawigacja */
 .nav-container {
-    display: inline-flex; justify-content: center; gap: 10px;
-    margin-bottom: 40px; padding: 10px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    position: relative; left: 50%; transform: translateX(-50%);
+    display: inline-flex; 
+    justify-content: center; 
+    gap: 15px; /* Trochę większy odstęp między napisami */
+    margin-bottom: 40px; 
+    padding: 10px 15px;
+    background: transparent; /* Usunięte tło */
+    border: none; /* Usunięta ramka */
+    backdrop-filter: none; /* Usunięty blur kontenera */
+    position: relative; 
+    left: 50%; 
+    transform: translateX(-50%);
 }
 
+/* Zwykły przycisk nawigacji */
 .nav-button {
-    padding: 10px 25px; background: transparent; color: var(--text-secondary);
-    border: none; border-radius: 30px; font-size: 0.95rem;
-    min-width: auto; box-shadow: none; text-transform: uppercase; letter-spacing: 1px;
+    padding: 8px 20px; 
+    background: transparent; 
+    color: var(--text-secondary); /* */
+    border: none; 
+    border-radius: 30px; 
+    font-size: 0.95rem;
+    min-width: auto; 
+    box-shadow: none; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+    transition: all 0.3s ease; /* Płynne przejścia */
 }
-.nav-button:hover { background: rgba(255, 255, 255, 0.1); color: white; transform: translateY(0); }
-.nav-button.active { background: var(--primary); color: white; box-shadow: 0 0 15px var(--primary-glow); }
-.nav-button.active:hover { background: var(--primary-dark); }
+
+.nav-button:hover { 
+    color: white; 
+    transform: translateY(-2px); 
+}
+
+/* Aktywny przycisk (jasna pigułka z ciemnym tekstem) */
+.nav-button.active { 
+    background: rgba(255, 255, 255, 0.9); /* Jasne tło, jak na screenie */
+    color: #0f0f1f; /* Ciemny tekst (taki jak tło strony) dla dobrego kontrastu */
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2); 
+}
+
+.nav-button.active:hover { 
+    background: #ffffff; 
+    transform: translateY(0);
+}
 
 /* Nagłówki */
 .header { text-align: center; margin-bottom: 30px; padding: 25px 0; position: relative; pointer-events: auto; }
@@ -239,8 +299,19 @@ a:hover { color: var(--primary-dark); text-decoration: underline; }
 
 /* Przycisk logowania (kłódka) */
 .admin-login-trigger {
-    position: fixed; bottom: 20px; right: 20px;
-    opacity: 0.5; font-size: 1.5rem; cursor: pointer; z-index: 1000;
+    position: fixed; 
+    bottom: 30px; 
+    right: 30px;
+    color: #757575; /* domyślny kolor wyciągnięty z wtyczki */
+    cursor: pointer; 
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.admin-login-trigger:hover {
+    color: var(--primary); /* po najechaniu świeci na fioletowo/zależnie od motywu */
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px var(--primary-glow));
 }
 .logout-btn {
     position: fixed; bottom: 20px; right: 20px;
@@ -350,3 +421,36 @@ body:not(.is-admin) .restream-row {
 #scrollDownBtn {
     bottom: 80px; 
 }
+
+/* --- Styl dla nowego loga --- */
+.brand-logo {
+    position: fixed;
+    bottom: 30px !important;
+    left: 30px !important;
+    z-index: 1000;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 15px var(--primary-glow));
+}
+
+.brand-blobs {
+    position: relative;
+    width: 45px;
+    height: 40px;
+}
+
+.brand-blobs .blob {
+    position: absolute;
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
+}
+
+/* Sztywne ułożenie na podstawie pixeli z oryginalnego obrazka */
+.blob-1 { top: 0px; left: 14px; z-index: 1; }
+.blob-3 { top: 5px; left: -5px; z-index: 2; }
+.blob-2 { top: 16px; left: 24px; z-index: 3; }

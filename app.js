@@ -88,7 +88,15 @@ function setupAuth() {
     
     // 1. Dodaj HTML do logowania (Kłódka i Modal)
     const authUI = `
-        <div class="admin-login-trigger" id="loginTrigger">🔒</div>
+        <div class="admin-login-trigger" id="loginTrigger" title="Logowanie">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_6_167)">
+                <path d="M34.2824 14.3746V16.6546H31.9874V18.9496H29.7074V21.2296H27.4274V25.8046H29.7074V28.0846H31.9874V30.3796H34.2824V32.6596H36.5624V25.8046H45.7124V21.2296H36.5624V14.3746H34.2824ZM31.9874 37.2346H34.2824V41.8096H31.9874V37.2346ZM31.9874 2.94458H34.2824V9.79958H31.9874V2.94458ZM22.8524 46.3696V44.0896H31.9874V41.8096H22.8524V12.0946H20.5724V46.3696H22.8524ZM13.7024 46.3696H20.5724V48.6646H13.7024V46.3696ZM15.9974 25.8046H18.2774V30.3796H15.9974V25.8046ZM15.9974 9.79958H20.5724V12.0946H15.9974V9.79958ZM9.14238 44.0896H13.7024V46.3696H9.14238V44.0896ZM11.4224 7.51958H15.9974V9.79958H11.4224V7.51958ZM4.56738 41.8096H9.14238V44.0896H4.56738V41.8096ZM6.84738 5.23958H11.4224V7.51958H6.84738V5.23958Z" fill="currentColor"/>
+                <path d="M4.5676 0.664551V2.94455H2.2876V41.8095H4.5676V5.23955H6.8476V2.94455H31.9876V0.664551H4.5676Z" fill="currentColor"/>
+                </g>
+                <defs><clipPath id="clip0_6_167"><rect width="48" height="48" fill="white"/></clipPath></defs>
+            </svg>
+        </div>
         <button class="logout-btn" id="logoutBtn">Wyloguj</button>
         
         <div id="loginModal" class="modal-overlay hidden">
@@ -908,19 +916,35 @@ function updateActiveDot(themeName) {
 
 function changeTheme(themeName) {
     const themes = {
-        white: { background: '#000000', surface: '#1a1a1a', primary: '#ffffff' },
-        blue: { background: '#0a0a1a', surface: '#15152b', primary: '#6366f1' },
-        purple: { background: '#1a0a1a', surface: '#2d152b', primary: '#a855f7' },
-        green: { background: '#0a1a0a', surface: '#152b15', primary: '#10b981' },
-        red: { background: '#1a0a0a', surface: '#2b1515', primary: '#ef4444' },
-        orange: { background: '#1a100a', surface: '#2b1d15', primary: '#f97316' },
-        original: { background: '#121212', surface: '#1e1e1e', primary: '#00bcd4' }
+        white: { background: '#050505', surface: '#1a1a1a', primary: '#ffffff', glow1: 'rgba(255, 255, 255, 0.12)', glow2: 'rgba(200, 200, 200, 0.04)', filter: 'grayscale(1) brightness(2)' },
+        blue: { background: '#0a0a1a', surface: '#15152b', primary: '#00d4ff', glow1: 'rgba(0, 212, 255, 0.15)', glow2: 'rgba(0, 100, 255, 0.05)', filter: 'hue-rotate(-90deg)' },
+        purple: { background: '#1a0a1a', surface: '#2d152b', primary: '#d946ef', glow1: 'rgba(217, 70, 239, 0.15)', glow2: 'rgba(150, 0, 200, 0.05)', filter: 'hue-rotate(30deg)' },
+        green: { background: '#0a1a0a', surface: '#152b15', primary: '#10b981', glow1: 'rgba(16, 185, 129, 0.15)', glow2: 'rgba(0, 100, 50, 0.05)', filter: 'hue-rotate(180deg)' },
+        red: { background: '#1a0a0a', surface: '#2b1515', primary: '#ef4444', glow1: 'rgba(239, 68, 68, 0.15)', glow2: 'rgba(150, 0, 0, 0.05)', filter: 'hue-rotate(70deg)' },
+        orange: { background: '#1a100a', surface: '#2b1d15', primary: '#f97316', glow1: 'rgba(249, 115, 22, 0.15)', glow2: 'rgba(200, 50, 0, 0.05)', filter: 'hue-rotate(100deg)' },
+        original: { background: '#0f0f1f', surface: 'rgba(25, 25, 45, 0.8)', primary: '#8b5cf6', glow1: 'rgba(139, 92, 246, 0.15)', glow2: 'rgba(64, 147, 193, 0.05)', filter: 'none' }
     };
+    
     const theme = themes[themeName] || themes.original;
     const root = document.documentElement;
+    
+    // Zmieniamy tylko zmienne, CSS sam nałoży animacje
     root.style.setProperty('--background', theme.background);
     root.style.setProperty('--surface', theme.surface);
     root.style.setProperty('--primary', theme.primary);
+    root.style.setProperty('--glow1', theme.glow1);
+    root.style.setProperty('--glow2', theme.glow2);
+    root.style.setProperty('--particle-filter', theme.filter);
+}
+
+// Konwerter HEX na RGB dla fluid.js
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
 }
 
 function loadSavedTheme() {

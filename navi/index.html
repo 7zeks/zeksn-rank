@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cel navi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="aura.css">
+</head>
+
+<body>
+    <div class="iris-container" id="irisContainer">
+    </div>
+
+    <div class="ambient-bg">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <main class="game-menu-container">
+
+        <header class="top-bar" >
+            <button class="glass-btn btn-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+            </button>
+
+            <div class="score-pill glass-panel">
+                <span class="star-icon">✨</span>
+                <span class="score-value">----</span>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="glass-btn btn-fortune" id="openFortuneBtn" title="Wylosuj Wróżbę">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 0 0-9.8 12.2A10 10 0 1 0 12 2Z"></path>
+                        <path d="M22 12A10 10 0 0 0 12 2V2Z"></path>
+                        <path d="M12 22a10 10 0 0 1-9.8-7.8"></path>
+                        <path d="M2.2 14.2A10 10 0 0 1 12 2v10Z"></path>
+                    </svg>
+                </button>
+
+                <button class="glass-btn btn-theme-toggle" id="themeToggle" title="Przełącz motyw">
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+
+                <button class="glass-btn btn-aura" id="auraToggle" title="Optymalizacja">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </button>
+
+                <button class="glass-btn btn-settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="title-section">
+            <p class="subtitle">TRYB EKSPLORACJI</p>
+            <h1>CHOOSE ONE</h1>
+        </div>
+
+        <div class="carousel-wrapper">
+            <button class="nav-btn prev-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6" />
+                </svg>
+            </button>
+
+            <div class="carousel">
+
+                <div class="card card-1">
+                    <div class="card-glow"></div>
+                    <div class="card-image"></div> <div class="card-content">
+                        <div class="card-icon">
+                            <svg width="96" height="96" viewBox="0 0 96 96" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M40.2599 67.56L53.6399 66.18L40.8199 82.18C40.7472 82.2724 40.6472 82.3397 40.5342 82.3721C40.4211 82.4045 40.3007 82.4005 40.19 82.3607C40.0794 82.3209 39.9841 82.2472 39.9176 82.1501C39.8512 82.0531 39.817 81.9376 39.8199 81.82L40.1599 60.88M81.0599 13.56C81.1306 13.5695 81.1985 13.5934 81.2595 13.6303C81.3205 13.6672 81.3733 13.7163 81.4146 13.7744C81.4559 13.8325 81.4847 13.8986 81.4994 13.9683C81.5141 14.0381 81.5142 14.1102 81.4999 14.18L68.7199 70.52C68.7062 70.579 68.6804 70.6344 68.6442 70.683C68.608 70.7315 68.5622 70.7721 68.5097 70.8021C68.4571 70.8322 68.3989 70.851 68.3387 70.8575C68.2785 70.8641 68.2177 70.8581 68.1599 70.84L40.8799 62.24C40.7155 62.1904 40.566 62.101 40.4446 61.9796C40.3232 61.8582 40.2338 61.7086 40.1843 61.5442C40.1348 61.3798 40.1267 61.2058 40.1609 61.0375C40.195 60.8693 40.2702 60.7121 40.3799 60.58L63.5799 32.24L63.3599 32L31.2199 59.68C31.0686 59.7966 30.8909 59.874 30.7025 59.9054C30.5141 59.9368 30.3208 59.9212 30.1399 59.86L7.73989 51.04C7.66779 51.0061 7.60684 50.9523 7.56414 50.885C7.52145 50.8177 7.49878 50.7397 7.49878 50.66C7.49878 50.5803 7.52145 50.5023 7.56414 50.435C7.60684 50.3677 7.66779 50.3139 7.73989 50.28L80.7799 13.62H81.0599V13.56Z"
+                                    stroke="#B3B3B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+
+                        </div>
+                        <div class="card-title">dropsite</div>
+                    </div>
+                </div>
+
+                <div class="card card-2 active-card">
+                    <div class="card-glow"></div>
+                    <div class="card-image"></div> <div class="card-content">
+                        <div class="card-icon">
+                            <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M37.2881 48.002L15.8621 26.576L37.2881 5.14999L80.1381 48L37.2881 90.85L15.8621 69.424L37.2881 48.002Z"
+                                    stroke="#B3B3B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="card-title">filmy</div>
+                    </div>
+                </div>
+
+                <div class="card card-3">
+                    <div class="card-glow"></div>
+                    <div class="card-image"></div> <div class="card-content">
+                        <div class="card-icon">
+                            <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 48L48 85L85 48L48 11L11 48Z" stroke="#B3B3B3" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M20.25 57.25L48 29.5L66.5 48L48 66.5L57.25 75.75M48 48L38.75 57.25" stroke="#B3B3B3" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="card-title">analiza</div>
+                    </div>
+                </div>
+
+                <div class="card card-4">
+                    <div class="card-glow"></div>
+                    <div class="card-image"></div> <div class="card-content">
+                        <div class="card-icon">
+                            <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M49.8 24.91C51.96 21.698 63.34 20.824 69.696 17.85C63.61 15.41 53.186 13.076 49.59 11L49.8 24.91ZM48.918 66.8L37.734 84.278L14.188 83.168L49.696 27.886L81.812 85L58.506 84.27L48.918 66.8Z"
+                                    stroke="#B3B3B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="card-title">ognisko</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="nav-btn next-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="pagination">
+            <span class="dot"></span>
+            <span class="dot active-dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span> 
+        </div>
+
+        <button class="play-btn" id="playBtn">
+            <div class="btn-gradient-overlay"></div>
+            <div class="btn-inner-glow"></div>
+
+            <div class="cursors-container" id="cursorsContainer"></div>
+
+            <span class="play-btn-text">odpal</span>
+        </button>
+
+    </main>
+
+    <div id="fortuneModal" class="fortune-overlay hidden">
+        <button id="closeFortuneBtn" class="glass-btn close-modal-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="fortune-container">
+            <div id="cookieUnopened" class="cookie-state active">
+                <h2 class="magic-title">Ciasteczko z wróżbą</h2>
+                <p class="magic-subtitle">Kliknij, aby przełamać!</p>
+                <div class="cookie-wrapper" id="crackBtn">
+                    <div class="cookie-glow"></div>
+                    <div class="cookie-shape"></div>
+                </div>
+            </div>
+
+            <div id="cookieCracking" class="cookie-state hidden">
+                <div class="cookie-wrapper cracking-anim">
+                    <div class="cookie-half left"></div>
+                    <div class="cookie-half right"></div>
+                    <div class="particles">✨✨✨</div>
+                </div>
+                <p class="magic-subtitle pulsing">Odczytywanie przyszłości...</p>
+            </div>
+
+            <div id="cookieOpened" class="cookie-state hidden">
+                <div class="fortune-card">
+                    <div class="sparkle-icon">✨</div>
+                    <h3 class="fortune-title">Twoja Wróżba</h3>
+                    <blockquote id="fortuneQuote" class="fortune-quote">"Tu pojawi się tekst"</blockquote>
+
+                    <div class="lucky-numbers-section">
+                        <h4>Szczęśliwe liczby</h4>
+                        <div id="fortuneNumbers" class="numbers-row"></div>
+                    </div>
+
+                    <button id="resetCookieBtn" class="play-btn small-btn">
+                        <span class="play-btn-text">Wylosuj ponownie</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="moggMusic" src="assets/TRUEADAM.mp3" loop preload="auto"></audio>
+
+    <script src="aura.js"></script>
+    <script src="app.js"></script>
+
+</body>
+
+</html>

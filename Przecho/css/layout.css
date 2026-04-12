@@ -1,0 +1,370 @@
+/* --- Główny kontener uploadu --- */
+.main-wrapper {
+    width: 100%;
+    max-width: 520px;
+    z-index: 10;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* --- Value Proposition Section (Lewy górny tekst) --- */
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.value-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+/* --- Value Proposition Section (Lewy górny tekst) --- */
+.value-prop-section {
+    position: fixed;
+    top: 130px; /* <--- ZMIENIONE Z 40px, żeby tekst ładnie siedział pod paskiem */
+    left: 40px;
+    width: 380px;
+    z-index: 20;
+    animation: slideInLeft 1s ease-out;
+}
+
+.value-prop-section .value-prop {
+    margin-bottom: 0;
+}
+
+.value-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+
+    /* Shimmer effect with proper setup */
+    background: linear-gradient(
+        90deg,
+        #FFFFFF 0%,
+        #FFFFFF 30%,
+        var(--accent-blue) 50%,
+        #FFFFFF 70%,
+        #FFFFFF 100%
+    );
+
+    background-size: 200% auto;
+    background-position: 0% center;
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    animation: shine 4s linear infinite;
+}
+
+/* Shimmer animation */
+@keyframes shine {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.value-description {
+    font-size: 14px;
+    color: #8A8F98;
+    margin: 0 0 20px 0;
+    line-height: 24px;
+}
+
+.value-features {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.feature-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-smooth);
+}
+
+.feature-tag svg {
+    color: #8A8F98;
+    width: 18px;
+    height: 18px;
+    transition: var(--transition-smooth);
+}
+
+.feature-tag:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.feature-tag:hover svg {
+    color: #FFFFFF;
+}
+
+/* --- Container for main content --- */
+.main-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 60px;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* --- RESPONSYWNOŚĆ ---
+   Improved responsive design with better breakpoints
+*/
+@media (max-width: 1200px) {
+    .main-content {
+        gap: 40px;
+    }
+
+    .value-prop-section {
+        width: 320px;
+        left: 20px;
+    }
+
+    .value-title {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 1024px) {
+    body {
+        padding: 20px 10px;
+    }
+
+    .main-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .value-prop-section {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto 30px auto;
+        text-align: center;
+        animation: slideInUp 1s ease-out;
+    }
+
+    .value-description {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 480px;
+    }
+
+    .value-features {
+        justify-content: center;
+    }
+
+    .main-wrapper {
+        width: 100%;
+        max-width: 520px;
+    }
+}
+
+@media (max-width: 768px) {
+    .value-prop-section {
+        margin-bottom: 20px;
+    }
+
+    .value-title {
+        font-size: 24px;
+    }
+
+    .value-description {
+        font-size: 13px;
+        line-height: 22px;
+    }
+
+    .value-features {
+        gap: 8px;
+    }
+
+    .feature-tag {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .feature-tag svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 15px 5px;
+    }
+
+    .value-prop-section {
+        width: 100%;
+        padding: 0 10px;
+    }
+
+    .value-title {
+        font-size: 22px;
+    }
+
+    .main-wrapper {
+        max-width: 100%;
+        padding: 0 10px;
+    }
+}
+
+/* --- Nawigacja: Logo (Lewa strona) --- */
+.nav-logo {
+    position: fixed;
+    top: 35px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    z-index: 1000;
+}
+
+.nav-logo:hover {
+    transform: scale(1.05);
+}
+
+/* --- Nawigacja: Menu i Logowanie (Prawa strona, bez pigułki) --- */
+.nav-right {
+    position: fixed;
+    top: 52px;
+    right: 190px;
+    display: flex;
+    align-items: center;
+    gap: 30px; /* Luźny odstęp między grupą linków a przyciskiem */
+    z-index: 1000;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 28px; /* Duży odstęp między samymi linkami */
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 17.5px; 
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    position: relative;
+    padding: 6px 0;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--text-main);
+}
+
+/* Delikatna miętowa kreska pod aktywnym linkiem */
+.nav-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* --- Responsywność --- */
+@media (max-width: 1024px) {
+    .nav-logo { left: 20px; }
+    .nav-right { right: 20px; }
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* Na telefonie ukrywamy same teksty, zostawiamy logo i logowanie */
+    }
+}
+
+/* --- Niezależny przycisk Login --- */
+.btn-login {
+    position: fixed;
+    bottom: 30px;
+    left: 30px; /* Domyślnie dla gościa: lewa strona */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8A8F98;
+    padding: 10px 18px;
+    border-radius: 20px; 
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: var(--transition-smooth); /* To sprawi, że przycisk płynnie odjedzie! */
+    z-index: 100;
+    font-family: inherit;
+}
+
+body.is-admin .btn-login {
+    left: 140px; 
+    opacity: 0.125;
+}
+
+body.is-admin .btn-login:hover {
+    opacity: 1;
+    opacity: 0.5;
+}
+
+body.is-admin .btn-login:hover svg {
+    color: var(--accent-blue);
+}
+
+.btn-login:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-blue);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.btn-login:hover svg {
+    color: var(--accent-blue);
+}
+

@@ -1,0 +1,153 @@
+/* --- CIĄGŁE WIBRACJE EKRANU --- */
+@keyframes continuousTremble {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+    50% { transform: translate(2px, -1px) rotate(0.5deg); }
+    75% { transform: translate(-1px, -2px) rotate(-0.5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* --- PULSUJĄCY MROK (BASS DROPS) --- */
+@keyframes darkPulse {
+    0% { backdrop-filter: brightness(0.6) contrast(1.4); }
+    50% { backdrop-filter: brightness(0.4) contrast(1.7); } /* Mocniejsze ściemnienie na bit */
+    100% { backdrop-filter: brightness(0.6) contrast(1.4); }
+}
+
+/* --- SZAŁ ŚWIATEŁ W TLE --- */
+@keyframes glowRage {
+    0% { transform: scale(1.5); opacity: 0.6; }
+    50% { transform: scale(2.2); opacity: 1; filter: blur(120px); }
+    100% { transform: scale(1.5); opacity: 0.6; }
+}
+
+/* --- RGB GLITCH NA TEKSTACH --- */
+@keyframes textGlitch {
+    0% { text-shadow: 3px 0 #ff004c, -3px 0 #4c00ff; }
+    25% { text-shadow: -3px 0 #ff004c, 3px 0 #4c00ff; }
+    50% { text-shadow: 3px 0 #ff004c, -3px 0 #4c00ff; transform: skewX(2deg); }
+    75% { text-shadow: -3px 0 #ff004c, 3px 0 #4c00ff; transform: skewX(-2deg); }
+    100% { text-shadow: 3px 0 #ff004c, -3px 0 #4c00ff; }
+}
+
+/* =========================================
+   AKTYWACJA TRYBU AURY (OVERRIDE)
+   ========================================= */
+
+/* Cały ekran nieustannie wibruje */
+body.aura-active {
+    animation: continuousTremble 0.15s infinite;
+    overflow: hidden; /* Zabezpieczenie przed paskami przewijania od trzęsienia */
+}
+
+/* Winieta pulsuje non-stop na całości */
+body.aura-active::after {
+    content: "";
+    position: fixed;
+    inset: -50px; /* Margines, żeby przy wibracjach nie było widać uciętych boków */
+    background: radial-gradient(circle at center, transparent 30%, rgba(15, 0, 10, 0.95) 100%);
+    z-index: 9999;
+    pointer-events: none;
+    animation: darkPulse 0.4s infinite; /* Szybkie pulsowanie jak uderzenia basu */
+}
+
+/* Kolory tła wchodzą w agresywny tryb czerwono-fioletowy i pulsują */
+body.aura-active .glow-1 {
+    background: #ff004c;
+    animation: glowRage 0.5s infinite alternate;
+}
+
+body.aura-active .glow-2 {
+    background: #4c00ff;
+    animation: glowRage 0.6s infinite alternate-reverse;
+}
+
+/* Glitchujemy główny tytuł "CHOOSE ONE" */
+body.aura-active .title-section h1 {
+    animation: textGlitch 0.2s infinite;
+    color: #ffffff;
+}
+
+/* Aktywna karta świeci jeszcze mocniej i trzęsie się niezależnie */
+body.aura-active .card.active-card {
+    animation: continuousTremble 0.1s infinite reverse;
+}
+
+body.aura-active .card.active-card .card-glow {
+    background: radial-gradient(circle, rgba(255, 0, 76, 0.7) 0%, rgba(76, 0, 255, 0.7) 50%, transparent 80%);
+    filter: blur(60px);
+    transform: translate(-50%, -50%) scale(1.6);
+    animation: glowRage 0.4s infinite alternate;
+}
+
+body.aura-active .card.active-card .card-content {
+    border-color: rgba(255, 0, 76, 0.6);
+    box-shadow: 
+        0 40px 100px rgba(0, 0, 0, 0.9), 
+        inset 0 0 40px rgba(255, 0, 76, 0.3);
+}
+
+/* Przycisk ODPAL krzyczy krwią */
+body.aura-active .play-btn {
+    border-color: #ff004c;
+    background: rgba(255, 0, 76, 0.2);
+    box-shadow: 0 0 40px rgba(255, 0, 76, 0.6);
+}
+body.aura-active .play-btn-text {
+    color: #fff;
+    animation: textGlitch 0.3s infinite;
+}
+
+/* =========================================
+   TRANSFORMACJA OBRAZKÓW (AURA SLAM) - FIX
+   ========================================= */
+
+.card-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: top center;
+    opacity: 0;
+    z-index: 1; 
+    
+    transform: scale(1.4);
+    filter: brightness(2.5) contrast(1.5) blur(15px) hue-rotate(90deg);
+    
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.8s ease;
+}
+
+/* ŚCIEŻKI DO OBRAZKÓW - upewnij się, że tak się nazywają pliki w Twoim folderze! */
+
+.card-1 .card-image::before { background-image: url('assets/dropsite-mogg.png'); }
+.card-2 .card-image::before { background-image: url('assets/rank-mogg.png'); }
+.card-3 .card-image::before { background-image: url('assets/matches-mogg.png'); }
+.card-4 .card-image::before { background-image: url('assets/fireplace-mogg.png'); }
+
+/* EFEKT ODPALENIA AURY */
+body.aura-active .card-image::before {
+    opacity: 1;
+    transform: scale(1); 
+    filter: brightness(1.5) contrast(1.1) blur(0px) hue-rotate(0deg); 
+}
+
+/* W trybie aury stary obrazek zostaje schowany pod ::before */
+body.aura-active .card-image {
+    background-image: none !important;
+    background-color: #050010;
+}
+
+body.aura-active .card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: rgba(255, 0, 76, 0.5);
+    animation: scanline 2s linear infinite;
+    z-index: 5;
+}
+
+@keyframes scanline {
+    0% { top: 0%; }
+    100% { top: 100%; }
+}
+

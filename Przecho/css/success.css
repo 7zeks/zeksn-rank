@@ -1,0 +1,138 @@
+/* --- Success Flow Section --- */
+.success-flow {
+    padding: 24px 0 0 0;
+    animation: slideInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Włączamy układ flex TYLKO wtedy, gdy Javascript usunie atrybut 'hidden' */
+.success-flow:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.success-header {
+    text-align: center;
+    /* JSON: width: 454px, flex column, center */
+    width: 100%;
+}
+
+.success-header h3 {
+    margin: 0;
+    /* JSON: "127.0.0.1SemanticHeading3" -> 18px, 700 */
+    font-size: 18px;
+    font-weight: 700;
+    /* JSON: color rgba(196, 231, 212, 1) -> to ten jasny zielony! */
+    color: #C4E7D4; 
+    text-align: center;
+}
+
+.success-link-box {
+    width: 100%;
+}
+
+.clickable-link {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--panel-border-highlight);
+    background: rgba(0, 0, 0, 0.3);
+    /* ZMIANA TUTAJ: Jasna mięta zamiast var(--accent-blue) */
+    color: #C4E7D4; 
+    font-weight: 700;
+    text-align: center;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: var(--transition-smooth);
+    text-decoration: none; 
+    word-break: break-all;
+}
+
+.clickable-link:hover {
+    /* ZMIANA TUTAJ: Miętowa ramka przy najechaniu */
+    border-color: #C4E7D4; 
+    /* ZMIANA TUTAJ: Miętowa poświata (glow) */
+    box-shadow: 0 0 12px rgba(196, 231, 212, 0.3); 
+    color: #fff;
+}
+
+/* Przyciski (Kopiuj, Udostępnij, Wgraj) */
+.success-actions {
+    display: flex;
+    /* JSON: gap 12px, flexWrap wrap */
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-secondary {
+    /* JSON: width 143.33px, ale flex: 1 lepiej zadziała responsywnie */
+    flex: 1;
+    min-width: 130px;
+    /* JSON: backgroundColor rgba(31, 31, 33, 0.5) */
+    background: rgba(31, 31, 33, 0.5);
+    /* JSON: color white */
+    color: #FFFFFF;
+    /* JSON: borderColor rgba(31, 31, 33, 1) */
+    border: 1px solid rgba(31, 31, 33, 1);
+    /* JSON: padding 12px 16px */
+    padding: 12px 16px;
+    /* JSON: borderRadius 14px */
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* JSON: gap 6px */
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-secondary:hover {
+    background: rgba(45, 45, 48, 0.7);
+    border-color: rgba(60, 60, 65, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active { transform: translateY(0); }
+
+/* Wskazówka na dole */
+.success-tips {
+    width: 100%;
+    /* JSON: OverlayVerticalBorder */
+    /* JSON: padding 16px 16px 16px 20px */
+    padding: 16px 16px 16px 20px;
+    /* JSON: backgroundColor rgba(0, 0, 0, 0.2) */
+    background: rgba(0, 0, 0, 0.2);
+    /* JSON: borderRadius 8px */
+    border-radius: 8px;
+    /* JSON: borderWidth 0 0 0 4px, borderColor rgba(196, 231, 212, 1) */
+    border-left: 4px solid #C4E7D4;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.success-tips p { 
+    margin: 0; 
+    /* JSON: fontSize 13px, color rgba(138, 143, 152, 1) */
+    font-size: 13px; 
+    color: #8A8F98; 
+    line-height: 1.4; 
+}
+.success-tips strong { 
+    color: #FFFFFF; 
+}

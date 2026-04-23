@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Akronim&family=Inter:wght@400;500;600;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <canvas id="fluid-canvas"></canvas>
+
+    <div class="dashboard-layout">
+        
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="logo">🟣</div>
+                <nav class="nav-icons">
+                    <a href="#" class="active">🏠</a>
+                    <a href="#">📈</a>
+                    <a href="#">💼</a>
+                    <a href="#">⚙️</a>
+                    <a href="#">⌚</a>
+                </nav>
+            </div>
+            <div class="sidebar-bottom">
+                <a href="#" class="logout-icon">🚪</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <header class="top-bar">
+                <div class="page-indicator">
+                    <div class="arrow-down">👇</div>
+                </div>
+                <div class="top-actions">
+                    <div class="search-bar">
+                        <span>Search</span>
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div class="user-avatar">
+                        <img src="https://api.builder.io/api/v1/image/assets/TEMP/ea381442b06293e291f1925774cb3157e95eeb88" alt="Avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid-container">
+                
+                <div class="widget weather-widget">
+                    <div class="weather-header">
+                        <div class="location">📍 Burdwan</div>
+                        <div class="weather-search">Search location...</div>
+                        <div class="weather-tabs">
+                            <span class="active">Today</span>
+                            <span>Tomorrow</span>
+                        </div>
+                    </div>
+                    
+                    <div class="weather-body">
+                        <div class="date">Aug 23, Tue</div>
+                        <div class="temp-display">
+                            <span class="temp">27°C</span>
+                            <div class="temp-toggles">
+                                <span class="active">°C</span> | <span>°F</span>
+                            </div>
+                        </div>
+                        <div class="weather-icon">☁️</div>
+                    </div>
+
+                    <div class="weather-footer">
+                        <div class="stat"><span>HUMIDITY</span><strong>99%</strong></div>
+                        <div class="stat"><span>VISIBILITY</span><strong>8km</strong></div>
+                        <div class="stat"><span>AIR PRESSURE</span><strong>1005hPa</strong></div>
+                        <div class="stat"><span>WIND</span><strong>2mph</strong></div>
+                    </div>
+                </div>
+
+                <div class="widget roll-widget">
+                    <div class="roll-content">
+                        <h2>🎥🎟️🍿</h2>
+                        <button class="roll-btn">ROLL</button>
+                    </div>
+                    <div class="badge">(7.0+)</div>
+                </div>
+
+                <div class="app-cards-row">
+                    <div class="music-card">
+                        <div class="music-icon orange">🎵</div>
+                        <img src="https://api.builder.io/api/v1/image/assets/TEMP/ea110243f12a8cb6ecf99764e5d3b8627ae948d6" alt="Album" class="album-art">
+                    </div>
+                    
+                    <div class="music-card text-card">
+                        <div class="music-icon blue">🎵</div>
+                        <div class="lyrics-list">
+                            <div class="lyric-item"><span class="color-box red"></span> personal favourites ♥</div>
+                            <div class="lyric-item"><span class="color-box yellow"></span> cutesy sunflower references 🌻</div>
+                            <div class="lyric-item"><span class="color-box green"></span> city references 🌎</div>
+                            <div class="lyric-item"><span class="color-box blue"></span> hit right in the feels 😢</div>
+                        </div>
+                    </div>
+
+                    <div class="music-card">
+                        <div class="music-icon orange">🎵</div>
+                        <img src="https://api.builder.io/api/v1/image/assets/TEMP/94394f767d49b4e414f00cb2ec655b639109d037" alt="Album" class="album-art">
+                    </div>
+
+                    <div class="music-card">
+                        <div class="music-icon big-orange">📀</div>
+                    </div>
+                </div>
+
+                <div class="widget shortcuts-widget">
+                    <div class="shortcuts-header">
+                        <div class="avatars">
+                            <img src="https://api.builder.io/api/v1/image/assets/TEMP/ea381442b06293e291f1925774cb3157e95eeb88" alt="Av">
+                            <div class="add-btn">+</div>
+                        </div>
+                        <div class="shortcut-badge">Shortcuts</div>
+                    </div>
+                    <div class="chart-placeholder">
+                        </div>
+                </div>
+
+                <div class="widget transfer-widget">
+                    <h3>Quick Transfer</h3>
+                    <div class="transfer-amount">
+                        <span>Amount:</span>
+                        <strong class="money"><span>$</span>3.25</strong>
+                    </div>
+                    <button class="transfer-btn">🚀 Transfer Now</button>
+                </div>
+
+                <div class="widget clock-widget">
+                    <h1 id="clock">17:12</h1>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    </body>
+</html>

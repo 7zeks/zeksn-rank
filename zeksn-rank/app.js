@@ -1,7 +1,7 @@
 // ----------------------------
 // WYKRYWANIE STRONY (ROUTER)
 // ----------------------------
-const isRankingPage = document.getElementById('rankingTable') !== null;
+const isRankingPage = document.getElementById('rankingTilesContainer') !== null;
 const isRestreamPage = document.getElementById('restreamRows') !== null;
 const isMainPage = document.getElementById('panel') !== null;
 
@@ -11,14 +11,14 @@ console.log(`Strona: ${isRankingPage ? 'RANKING' : isRestreamPage ? 'RESTREAM' :
 // FIREBASE CONFIG
 // ----------------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyAm1X3V10ImJ_RVaIqRpcFqRjlyg9vA5yI",
-  authDomain: "filmy-zk.firebaseapp.com",
-  databaseURL: "https://filmy-zk-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "filmy-zk",
-  storageBucket: "filmy-zk.firebasestorage.app",
-  messagingSenderId: "168407000386",
-  appId: "1:168407000386:web:9220f943400263461394db",
-  measurementId: "G-TLSHRQH647"
+    apiKey: "AIzaSyAm1X3V10ImJ_RVaIqRpcFqRjlyg9vA5yI",
+    authDomain: "filmy-zk.firebaseapp.com",
+    databaseURL: "https://filmy-zk-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "filmy-zk",
+    storageBucket: "filmy-zk.firebasestorage.app",
+    messagingSenderId: "168407000386",
+    appId: "1:168407000386:web:9220f943400263461394db",
+    measurementId: "G-TLSHRQH647"
 };
 
 try {
@@ -38,45 +38,40 @@ const restreamRef = firebase.database().ref("restream");
 // ZMIENNE GLOBALNE
 // ----------------------------
 let data = [];
-let users = []; 
+let users = [];
 let restreamSites = [];
 let currentSort = { key: "rating", dir: -1 };
 let currentUser = "";
-let isAdmin = false; // <--- POPRAWKA: Zmienna globalna
+let isAdmin = false;
 
 // ----------------------------
 // INICJALIZACJA APLIKACJI
 // ----------------------------
 function initApp() {
     console.log('Startowanie aplikacji...');
-    
-    // 0. Setup Autoryzacji (Admina)
-    setupAuth(); // <--- POPRAWKA: Wywołanie funkcji
 
-    // 1. Wspólne dla wszystkich stron (Motywy)
+    setupAuth();
+
     loadSavedTheme();
     setupThemeChanger();
+    setupTopBarSettings();
     setupScrollButtons();
 
-    // 2. Logika dla Strony Głównej (Index)
     if (isMainPage) {
         console.log('>>> Setup Index');
-        setupAddUserButton(); 
+        setupAddUserButton();
         setupIndexEventListeners();
         populateRatingSelect();
     }
 
-    // 3. Logika dla Rankingu
     if (isRankingPage) {
         console.log('>>> Setup Ranking');
         setupSearch();
         setupRankingEventListeners();
         setupRankingListeners();
-        // Fallback dla initial load
         loadInitialRankingData();
     }
 
-    // 5. Pobieranie użytkowników (potrzebne wszędzie)
     setupUsersListener();
 }
 
@@ -85,48 +80,49 @@ function initApp() {
 // ----------------------------
 function setupAuth() {
     const auth = firebase.auth();
-    
-    // 1. Dodaj HTML do logowania (Kłódka i Modal)
+
     const authUI = `
         <div class="admin-login-trigger" id="loginTrigger" title="Logowanie">
             <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clip-path="url(#clip0_6_167)">
                 <path d="M34.2824 14.3746V16.6546H31.9874V18.9496H29.7074V21.2296H27.4274V25.8046H29.7074V28.0846H31.9874V30.3796H34.2824V32.6596H36.5624V25.8046H45.7124V21.2296H36.5624V14.3746H34.2824ZM31.9874 37.2346H34.2824V41.8096H31.9874V37.2346ZM31.9874 2.94458H34.2824V9.79958H31.9874V2.94458ZM22.8524 46.3696V44.0896H31.9874V41.8096H22.8524V12.0946H20.5724V46.3696H22.8524ZM13.7024 46.3696H20.5724V48.6646H13.7024V46.3696ZM15.9974 25.8046H18.2774V30.3796H15.9974V25.8046ZM15.9974 9.79958H20.5724V12.0946H15.9974V9.79958ZM9.14238 44.0896H13.7024V46.3696H9.14238V44.0896ZM11.4224 7.51958H15.9974V9.79958H11.4224V7.51958ZM4.56738 41.8096H9.14238V44.0896H4.56738V41.8096ZM6.84738 5.23958H11.4224V7.51958H6.84738V5.23958Z" fill="currentColor"/>
                 <path d="M4.5676 0.664551V2.94455H2.2876V41.8095H4.5676V5.23955H6.8476V2.94455H31.9876V0.664551H4.5676Z" fill="currentColor"/>
-                </g>
-                <defs><clipPath id="clip0_6_167"><rect width="48" height="48" fill="white"/></clipPath></defs>
             </svg>
         </div>
-        <button class="logout-btn" id="logoutBtn">Wyloguj</button>
+        
+        <div class="admin-logout-trigger" id="logoutBtn" title="Wyloguj">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_47_8)">
+<path d="M25.1449 9.14V13.71H19.0449V16.76H25.1449V21.33H26.6649V19.81H28.1949V18.29H29.7149V16.76H31.2349V13.71H29.7149V12.19H28.1949V10.67H26.6649V9.14H25.1449ZM20.5749 21.33H22.0949V27.43H20.5749V21.33ZM20.5749 1.52H22.0949V9.14H20.5749V1.52ZM14.4749 30.48V28.95H20.5749V27.43H14.4749V7.62H12.9549V30.48H14.4749ZM8.38491 30.48H12.9549V32H8.38491V30.48ZM9.90491 16.76H11.4249V19.81H9.90491V16.76ZM9.90491 6.1H12.9549V7.62H9.90491V6.1ZM5.33491 28.95H8.38491V30.48H5.33491V28.95ZM6.85491 4.57H9.90491V6.1H6.85491V4.57ZM2.28491 27.43H5.33491V28.95H2.28491V27.43ZM3.81491 3.05H6.85491V4.57H3.81491V3.05Z" fill="#B3B3B3"/><path d="M2.28489 0V1.52H0.764893V27.43H2.28489V3.05H3.81489V1.52H20.5749V0H2.28489Z" fill="#B3B3B3"/></g><defs><clipPath id="clip0_47_8"><rect width="32" height="32" fill="white"/></clipPath></defs>
+</svg>
+    </div>
         
         <div id="loginModal" class="modal-overlay hidden">
-            <div class="modal-content" style="max-width: 300px; text-align: center;">
+            <div class="modal-content login-content">
                 <div class="modal-header"><h3>Admin Login</h3><button class="modal-close-login">&times;</button></div>
                 <div class="modal-body">
-                    <input type="email" id="adminEmail" placeholder="Email" style="margin-bottom:10px; width:100%;">
-                    <input type="password" id="adminPass" placeholder="Hasło" style="margin-bottom:15px; width:100%;">
-                    <button id="doLoginBtn" class="btn-confirm" style="width:100%;">Zaloguj</button>
-                    <p id="loginError" style="color:var(--error); margin-top:10px; font-size:0.8rem;"></p>
+                    <input type="email" id="adminEmail" placeholder="Email" class="form-input">
+                    <input type="password" id="adminPass" placeholder="Hasło" class="form-input">
+                    <button id="doLoginBtn" class="btn-confirm full-width">Zaloguj</button>
+                    <p id="loginError" class="error-msg"></p>
                 </div>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', authUI);
 
-    // 2. Obsługa zdarzeń (kliknięcia)
     const loginTrigger = document.getElementById('loginTrigger');
     const loginModal = document.getElementById('loginModal');
     const closeLogin = document.querySelector('.modal-close-login');
     const doLoginBtn = document.getElementById('doLoginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    if(loginTrigger) loginTrigger.addEventListener('click', () => loginModal.classList.remove('hidden'));
-    if(closeLogin) closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
+    if (loginTrigger) loginTrigger.addEventListener('click', () => loginModal.classList.remove('hidden'));
+    if (closeLogin) closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
 
-    if(doLoginBtn) doLoginBtn.addEventListener('click', () => {
+    if (doLoginBtn) doLoginBtn.addEventListener('click', () => {
         const email = document.getElementById('adminEmail').value;
         const pass = document.getElementById('adminPass').value;
-        
+
         auth.signInWithEmailAndPassword(email, pass)
             .then(() => {
                 loginModal.classList.add('hidden');
@@ -136,15 +132,14 @@ function setupAuth() {
             })
             .catch(error => {
                 const errElem = document.getElementById('loginError');
-                if(errElem) errElem.textContent = "Błąd: " + error.message;
+                if (errElem) errElem.textContent = "Błąd: " + error.message;
             });
     });
 
-    if(logoutBtn) logoutBtn.addEventListener('click', () => {
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
         auth.signOut().then(() => showNotification('Wylogowano', 'info'));
     });
 
-    // 3. Nasłuchiwanie zmian stanu (Admin vs Gość)
     auth.onAuthStateChanged(user => {
         if (user) {
             isAdmin = true;
@@ -170,15 +165,14 @@ function setupAddUserButton() {
     const addUserHTML = `
         <div class="panel-step">
             <label>Opcje:</label>
-            <div style="display:flex; gap:10px;">
-                <button id="addUserBtn" style="background: var(--success); flex:1;">Nowy</button>
-                <button id="manageUsersBtn" style="background: var(--warning); flex:1;">Zarządzaj</button>
+            <div class="options-wrapper">
+                <button id="addUserBtn" class="btn-option">Nowy</button>
+                <button id="manageUsersBtn" class="btn-option">Zarządzaj</button>
             </div>
         </div>
     `;
     panel.insertAdjacentHTML('afterbegin', addUserHTML);
-    
-    // POPRAWKA: Listenery dodajemy PO wstawieniu HTML
+
     document.getElementById('addUserBtn').addEventListener('click', () => {
         if (!isAdmin) return showNotification("🔒 admin only", "error");
         showAddUserModal();
@@ -201,10 +195,10 @@ function setupIndexEventListeners() {
     if (userSelect) userSelect.addEventListener("change", handleUserSelect);
     if (nextBtn) nextBtn.addEventListener("click", handleNextStep);
     if (saveBtn) saveBtn.addEventListener("click", handleSaveRating);
-    
+
     if (movieTitle) movieTitle.addEventListener("keypress", (e) => { if (e.key === "Enter") handleNextStep(); });
     if (ratingInput) ratingInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSaveRating(); });
-    
+
     if (ratingSelect) {
         ratingSelect.addEventListener("change", (e) => {
             if (e.target.value && ratingInput) ratingInput.value = e.target.value;
@@ -215,27 +209,27 @@ function setupIndexEventListeners() {
 function populateRatingSelect() {
     const ratingSelect = document.getElementById("ratingSelect");
     const ratingInput = document.getElementById("ratingInput");
-    
-    if(!ratingSelect || ratingSelect.options.length > 1) return;
-    
+
+    if (!ratingSelect || ratingSelect.options.length > 1) return;
+
     ratingSelect.innerHTML = '';
     const defaultOption = new Option('Szybki wybór', '', true, true);
     defaultOption.disabled = true;
     ratingSelect.add(defaultOption);
-    
+
     const ratings = [
         '10 - Perfekcyjny', '9 - Arcydzieło', '8 - Znakomity', '7 - Bardzo dobry',
         '6 - Dobry', '5 - Przeciętny', '4 - Taki sobie', '3 - Kiepski',
         '2 - Słaby', '1 - Bardzo słaby', '0 - Katastrofa'
     ];
-    
+
     ratings.forEach(label => {
-        const value = label.split(' - ')[0]; 
+        const value = label.split(' - ')[0];
         ratingSelect.add(new Option(label, value));
     });
-    
-    ratingSelect.addEventListener('change', function() {
-        if(this.value && ratingInput) {
+
+    ratingSelect.addEventListener('change', function () {
+        if (this.value && ratingInput) {
             ratingInput.value = this.value;
         }
     });
@@ -261,20 +255,19 @@ function handleNextStep() {
     const stepRating = document.getElementById("stepRating");
     const ratingInput = document.getElementById("ratingInput");
 
-    if (!movieTitle.value.trim()) { 
+    if (!movieTitle.value.trim()) {
         showNotification("Wpisz tytuł filmu", 'error');
         movieTitle.focus();
-        return; 
+        return;
     }
     stepRating.classList.remove("hidden");
     if (ratingInput) ratingInput.focus();
 }
 
 async function handleSaveRating() {
-    // ---> BLOKADA DLA GOŚCI <---
     if (!isAdmin) {
         showNotification("🔒 Log in", "error");
-        return; 
+        return;
     }
 
     const userSelect = document.getElementById("userSelect");
@@ -289,18 +282,18 @@ async function handleSaveRating() {
     const rating = parseFloat(ratingText);
 
     if (!user || !film) return;
-    if (isNaN(rating) || rating < 0 || rating > 10) { 
-        showNotification("Podaj poprawną ocenę (0-10)", 'error'); 
-        return; 
+    if (isNaN(rating) || rating < 0 || rating > 10) {
+        showNotification("Podaj poprawną ocenę (0-10)", 'error');
+        return;
     }
 
     const normalizedFilm = film.toLowerCase().trim();
-    
+
     try {
         const snapshot = await dbRef.once('value');
         let existingKey = null;
         let existingData = null;
-        
+
         if (snapshot.exists()) {
             snapshot.forEach(child => {
                 const val = child.val();
@@ -312,17 +305,17 @@ async function handleSaveRating() {
                 }
             });
         }
-        
+
         if (existingKey && existingData) {
             const userRatings = existingData.ratings || {};
             userRatings[user] = rating.toString();
             const arr = Object.values(userRatings).map(r => parseFloat(r));
-            const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
-            
+            const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+
             await dbRef.child(existingKey).update({
                 ratings: userRatings,
                 avgRating: avg.toFixed(1),
-                film: existingData.film 
+                film: existingData.film
             });
             showNotification(`Zaktualizowano ocenę: ${rating}`, 'success');
         } else {
@@ -340,7 +333,7 @@ async function handleSaveRating() {
         console.error(err);
         showNotification("Błąd zapisu", 'error');
     }
-    
+
     document.getElementById("stepRating").classList.add("hidden");
     movieTitle.value = "";
     ratingInput.value = "";
@@ -353,135 +346,186 @@ async function handleSaveRating() {
 // ============================================================
 
 function setupRankingEventListeners() {
-    const headers = document.querySelectorAll("#rankingTable th");
+    const headers = document.querySelectorAll(".ranking-header-row div");
     if (headers) {
-        headers.forEach(h => h.addEventListener("click", () => handleSort(h)));
+        headers.forEach(h => {
+            h.addEventListener("click", () => {
+                // Rozpoznajemy, w którą kolumnę kliknął użytkownik
+                if (h.classList.contains('col-rank')) handleSort('rank');
+                else if (h.classList.contains('col-change')) handleSort('change');
+                else if (h.classList.contains('col-team')) handleSort('film');
+                else if (h.classList.contains('col-pf')) handleSort('rating');
+            });
+        });
     }
 }
 
 function setupRankingListeners() {
-    const tbody = document.querySelector("#rankingTable tbody");
-    
     dbRef.on("value", snapshot => {
         if (snapshot.exists()) {
             data = [];
             snapshot.forEach(child => {
                 const v = child.val();
-                data.push(v.ratings ? 
-                    { id: child.key, film: v.film, ratings: v.ratings, avgRating: v.avgRating } :
-                    { id: child.key, film: v.film, ratings: {[v.user]: v.rating}, avgRating: v.rating });
+                data.push({ 
+                    id: child.key, 
+                    film: v.film, 
+                    ratings: v.ratings || { [v.user]: v.rating }, 
+                    avgRating: v.avgRating || v.rating,
+                    createdAt: v.createdAt || 0
+                });
             });
+
+            // --- NOWOŚĆ: Nadajemy twardy ranking na podstawie samej oceny ---
+            // 1. Układamy dane od najlepszej do najgorszej oceny
+            data.sort((a, b) => {
+                const rA = parseFloat(a.avgRating || a.rating || 0);
+                const rB = parseFloat(b.avgRating || b.rating || 0);
+                return rB - rA; // sortowanie malejące
+            });
+
+            // 2. Każdemu filmowi zapisujemy na sztywno jego miejsce
+            data.forEach((item, index) => {
+                item.trueRank = index + 1;
+            });
+
             renderFullTable();
         } else {
-            if (tbody) tbody.innerHTML = '';
+            const container = document.getElementById("rankingTilesContainer");
+            if (container) container.innerHTML = '<div style="color: white; padding: 20px;">Brak danych w rankingu.</div>';
         }
     });
 }
 
-function loadInitialRankingData() {
-    // Fallback if needed
-}
+function loadInitialRankingData() { }
 
 function renderFullTable() {
-    const tbody = document.querySelector("#rankingTable tbody");
-    if (!tbody) return;
-    
-    tbody.innerHTML = "";
-    const sorted = applyCurrentSortArray([...data]);
-    
-    sorted.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.dataset.id = item.id;
+    renderTiles(data);
+}
+
+function filterTableLogic(term) {
+    const filtered = data.filter(item => item.film.toLowerCase().includes(term));
+    renderTiles(filtered);
+}
+
+// Funkcja generująca płynny gradient koloru na podstawie oceny (0-10)
+function getDynamicRatingColor(avg) {
+    // Zabezpieczenie przed dziwnymi wartościami (wymusza zakres 0-10)
+    const rating = Math.max(0, Math.min(10, parseFloat(avg || 0)));
+
+    if (rating >= 8.0) {
+        // 8.0 do 10.0 -> Przejście w mocny fiolet motywu
+        // Różowo-fioletowy przechodzi w głęboki, nasycony fiolet
+        const progress = (rating - 8) / 2; // Progres od 0.0 do 1.0
+        const hue = 290 - (progress * 30); // Zmiana barwy z 290 na 260
+        const lightness = 70 - (progress * 10); // Odrobina przyciemnienia przy 10
+        return `hsl(${hue}, 90%, ${lightness}%)`;
+    } 
+    else if (rating >= 5.0) {
+        // 5.0 do 7.9 -> Pomarańcz przechodzący płynnie w zieleń
+        const progress = (rating - 5) / 2.9; 
+        const hue = 35 + (progress * 115); // Barwa z 35 (pomarańcz) na 150 (zieleń)
+        return `hsl(${hue}, 85%, 55%)`;
+    } 
+    else {
+        // 0.0 do 4.9 -> Czerwień przechodząca w pomarańcz
+        const progress = rating / 4.9;
+        const hue = progress * 35; // Barwa z 0 (czerwień) na 35 (pomarańcz)
+        return `hsl(${hue}, 90%, 60%)`;
+    }
+}
+
+// 2. Nowa uniwersalna funkcja do budowania kafelków
+function renderTiles(dataToRender) {
+    const container = document.getElementById("rankingTilesContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const sorted = applyCurrentSortArray([...dataToRender]);
+
+    sorted.forEach((item, index) => {
+        const tile = document.createElement("div");
+        tile.className = "ranking-tile";
+        tile.dataset.id = item.id;
         
-        // --- KLUCZOWE: PRAWY PRZYCISK MYSZY ---
-        // POPRAWKA: Przeniesione do środka pętli
-        tr.addEventListener("contextmenu", (e) => {
+        // --- KLUCZOWE: PRAWY PRZYCISK MYSZY Z TWOJEGO KODU ---
+        tile.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             // ---> BLOKADA <---
             if (!isAdmin) {
                 showNotification("admin", "error");
                 return;
             }
-            showRatingDetails(item); // Wywołanie menu kontekstowego
+            showRatingDetails(item); 
         });
+
+        // --- OCENA I KOLORY (PŁYNNE) ---
+        const avg = parseFloat(item.avgRating || item.rating || 0);
+        const ratingColor = getDynamicRatingColor(avg);
+
+        // --- SPRAWDZANIE CZY FILM JEST NOWY (dodany max 3 dni temu) ---
+        const TRZY_DNI_W_MS = 3 * 24 * 60 * 60 * 1000;
+        let changeHTML = '<span style="color: var(--text-muted);">-</span>';
         
-        // Tytuł + Ikonka Filmweb
-        const tdFilm = document.createElement("td");
-        tdFilm.style.display = "flex";
-        tdFilm.style.alignItems = "center";
-        tdFilm.style.justifyContent = "space-between"; // Tekst z lewej, ikona z prawej
+        if (item.createdAt && (Date.now() - item.createdAt < TRZY_DNI_W_MS)) {
+            // Neutralny, elegancki wygląd "NEW" (biały z bardzo delikatną poświatą)
+            changeHTML = '<span style="color: rgba(255, 255, 255, 0.85); font-weight: 800; font-size: 0.85rem;opacity: 0.75 ; letter-spacing: 1.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);">NEW</span>';
+        }
 
-        // 1. Tytuł filmu
-        const titleSpan = document.createElement("span");
-        titleSpan.style.fontWeight = "500";
-        titleSpan.textContent = item.film;
+        // --- STRUKTURA KAFELKA ---
+        tile.innerHTML = `
+            <div class="col-rank">${item.trueRank}</div>
+            <div class="col-change">${changeHTML}</div>
+            
+            <div class="col-team">
+                <div class="team-banner"></div>
+                <span class="team-name" title="${item.film}">${item.film}</span>
+                
+                <div class="filmweb-icon-wrapper" title="Szukaj na Filmwebie">
+                    <img class="fw-icon" src="https://www.filmweb.pl/favicon.ico" alt="FW">
+                </div>
+            </div>
 
-        // 2. Ikonka Filmweb
-        const fwIcon = document.createElement("img");
-        fwIcon.src = "https://www.filmweb.pl/favicon.ico"; // Oryginalna ikona FW
-        fwIcon.alt = "FW";
-        fwIcon.title = "Szukaj na Filmwebie";
-        fwIcon.style.width = "16px";
-        fwIcon.style.height = "16px";
-        fwIcon.style.cursor = "pointer";
-        fwIcon.style.opacity = "0.6";
-        fwIcon.style.transition = "opacity 0.2s";
-        fwIcon.style.marginLeft = "10px";
+            <div class="col-pf" style="color: ${ratingColor};">
+                ${avg.toFixed(1)}
+            </div>
+        `;
 
-        // Logika kliknięcia
-        fwIcon.addEventListener("click", (e) => {
+        // --- LOGIKA KLIKNIĘCIA I HOVERA ---
+        const fwWrapper = tile.querySelector('.filmweb-icon-wrapper');
+        
+        fwWrapper.addEventListener("click", (e) => {
             e.stopPropagation(); // Żeby nie kolidowało z innymi kliknięciami
             const query = encodeURIComponent(item.film);
             window.open(`https://www.filmweb.pl/search#/all?query=${query}`);
         });
 
-        // Efekt najechania myszką
-        fwIcon.addEventListener("mouseenter", () => fwIcon.style.opacity = "1");
-        fwIcon.addEventListener("mouseleave", () => fwIcon.style.opacity = "0.6");
-
-        tdFilm.appendChild(titleSpan);
-        tdFilm.appendChild(fwIcon);
-        tr.appendChild(tdFilm);
-        
-        // Ocena
-        const tdRating = document.createElement("td");
-        const avg = parseFloat(item.avgRating || item.rating || 0);
-        tdRating.textContent = avg.toFixed(1);
-        tdRating.style.textAlign = 'left';
-        tdRating.style.fontWeight = '700';
-        
-        if (avg >= 8) tdRating.style.color = '#10b981a9';
-        else if (avg >= 5) tdRating.style.color = '#f59f0bb6';
-        else tdRating.style.color = '#ef4444ab';
-        
-        tr.appendChild(tdRating);
-        tbody.appendChild(tr);
+        // --- WAŻNE: Dodanie gotowego kafelka na stronę ---
+        container.appendChild(tile);
     });
 }
 
-// --- NOWA FUNKCJA: Szczegóły Ocen (Modal) ---
 function showRatingDetails(item) {
     const ratings = item.ratings || { [item.user]: item.rating };
-    
-    let detailsHTML = '<div style="padding: 10px 0;">';
+
+    let detailsHTML = '<div class="rating-details-container">';
     detailsHTML += '<strong>Szczegóły ocen:</strong><br><br>';
-    
+
     Object.entries(ratings).forEach(([user, rating]) => {
         detailsHTML += `
-            <div class="rating-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <div class="rating-item">
                 <div><strong>${user}:</strong> ${parseFloat(rating).toFixed(1)}</div>
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn-edit-rating" data-user="${user}" style="padding: 4px 8px; background: var(--primary); font-size: 0.8rem;">✎</button>
-                    <button class="btn-delete-rating" data-user="${user}" style="padding: 4px 8px; background: var(--error); font-size: 0.8rem;">🗑</button>
+                <div class="rating-actions">
+                    <button class="btn-edit-rating" data-user="${user}">✎</button>
+                    <button class="btn-delete-rating" data-user="${user}">🗑</button>
                 </div>
             </div>
         `;
     });
     detailsHTML += `</div>`;
-    
+
     const modalHTML = `
         <div id="ratingDetailsModal" class="modal-overlay">
-            <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h3>${item.film}</h3>
                     <button class="modal-close">&times;</button>
@@ -493,18 +537,17 @@ function showRatingDetails(item) {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     const modal = document.getElementById('ratingDetailsModal');
-    
-    // Listenery
+
     modal.querySelectorAll('.btn-edit-rating').forEach(btn => {
         btn.addEventListener('click', () => editUserRating(item, btn.dataset.user, ratings[btn.dataset.user]));
     });
     modal.querySelectorAll('.btn-delete-rating').forEach(btn => {
         btn.addEventListener('click', () => deleteUserRating(item, btn.dataset.user));
     });
-    
+
     const closeModal = () => modal.remove();
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
     modal.querySelector('#closeRatingDetails').addEventListener('click', closeModal);
@@ -513,44 +556,40 @@ function showRatingDetails(item) {
 function editUserRating(item, user, currentRating) {
     const newRating = prompt(`Nowa ocena użytkownika ${user}:`, currentRating);
     if (newRating === null) return;
-    
+
     const parsed = parseFloat(newRating.replace(',', '.'));
     if (isNaN(parsed) || parsed < 0 || parsed > 10) {
         showNotification("Błędna ocena", "error");
         return;
     }
-    
+
     const updatedRatings = { ...item.ratings };
     updatedRatings[user] = parsed.toString();
-    
-    // Przelicz średnią
+
     const arr = Object.values(updatedRatings).map(r => parseFloat(r));
-    const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
-    
+    const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+
     dbRef.child(item.id).update({
         ratings: updatedRatings,
         avgRating: avg.toFixed(1)
     }).then(() => {
         showNotification("Zaktualizowano ocenę", "success");
-        document.getElementById('ratingDetailsModal').remove(); // Zamknij modal
+        document.getElementById('ratingDetailsModal').remove();
     });
 }
 
 function deleteUserRating(item, user) {
-    if(!confirm(`Usunąć ocenę użytkownika ${user}?`)) return;
-    
+
     const updatedRatings = { ...item.ratings };
     delete updatedRatings[user];
-    
-    // Jeśli to była jedyna ocena -> usuń film
+
     if (Object.keys(updatedRatings).length === 0) {
         dbRef.child(item.id).remove();
         showNotification("Usunięto film (brak ocen)", "success");
     } else {
-        // Przelicz średnią
         const arr = Object.values(updatedRatings).map(r => parseFloat(r));
-        const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
-        
+        const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+
         dbRef.child(item.id).update({
             ratings: updatedRatings,
             avgRating: avg.toFixed(1)
@@ -568,13 +607,43 @@ function handleSort(header) {
     renderFullTable();
 }
 
+function handleSort(key) {
+    if (!key) return;
+    
+    // Jeśli klikasz w to samo, odwróć kolejność (np. Z-A, najniższe oceny)
+    if (currentSort.key === key) {
+        currentSort.dir *= -1; 
+    } else {
+        // Domyślne kierunki dla pierwszego kliknięcia w daną kolumnę
+        let defaultDir = 1; // Dla RANK i FILM: rosnąco (1-99, A-Z)
+        if (key === 'rating' || key === 'change') {
+            defaultDir = -1; // Dla OCENY i CHANGE: malejąco (Najwyższe oceny i najnowsze filmy na górze)
+        }
+        currentSort = { key: key, dir: defaultDir };
+    }
+    renderFullTable();
+}
+
 function applyCurrentSortArray(arr) {
     return arr.sort((a, b) => {
         if (currentSort.key === "rating") {
+            // Sortowanie po ocenie
             const rA = parseFloat(a.avgRating || a.rating || 0);
             const rB = parseFloat(b.avgRating || b.rating || 0);
             return (rA - rB) * currentSort.dir;
+            
+        } else if (currentSort.key === "rank") {
+            // Sortowanie po twardej pozycji w rankingu
+            return (a.trueRank - b.trueRank) * currentSort.dir;
+            
+        } else if (currentSort.key === "change") {
+            // Sortowanie od najnowszych (po dacie dodania)
+            const tA = a.createdAt || 0;
+            const tB = b.createdAt || 0;
+            return (tA - tB) * currentSort.dir;
+            
         } else {
+            // Sortowanie alfabetyczne po tytule
             return a.film.localeCompare(b.film) * currentSort.dir;
         }
     });
@@ -584,116 +653,40 @@ function setupSearch() {
     const tableContainer = document.querySelector('.table-container');
     if (!tableContainer) return;
 
-    // Dodajemy input ORAZ przycisk czyszczenia (button)
     const searchHTML = `
-        <div class="search-wrapper" style="margin-bottom: 20px; position: relative; z-index: 5;">
-            <input type="text" id="searchInput" placeholder="🔍 Szukaj filmu..." 
-            style="width: 100%; padding: 15px 45px 15px 20px; background: rgba(15, 15, 25, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; color: white; font-size: 1rem; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            
-            <button id="searchClear" class="search-clear-btn" title="Wyczyść">✕</button>
+        <div class="search-container">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="Szukaj filmu...">
+                <button id="searchClear" class="search-clear-btn" title="Wyczyść">✕</button>
+            </div>
         </div>
     `;
-    
-    // Usuwamy starą wyszukiwarkę jeśli istnieje, żeby nie dublować
-    const oldWrapper = document.querySelector('.search-wrapper');
+
+    const oldWrapper = document.querySelector('.search-container');
     if (oldWrapper) oldWrapper.remove();
 
     tableContainer.insertAdjacentHTML('beforebegin', searchHTML);
-    
+
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('searchClear');
 
-    // 1. Obsługa pisania (pokazywanie X i filtrowanie)
     searchInput.addEventListener('keyup', (e) => {
         const term = e.target.value.toLowerCase().trim();
-        
-        // Pokaż/Ukryj przycisk X
         clearBtn.style.display = term.length > 0 ? 'block' : 'none';
-        
-        // Filtrowanie
         filterTableLogic(term);
     });
 
-    // 2. Obsługa przycisku X (czyszczenie)
     clearBtn.addEventListener('click', () => {
-        searchInput.value = '';        // Wyczyść tekst
-        clearBtn.style.display = 'none'; // Ukryj przycisk
-        filterTableLogic('');          // Zresetuj tabelę (pokaż wszystko)
-        searchInput.focus();           // Ustaw kursor z powrotem w polu
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        filterTableLogic('');
+        searchInput.focus();
     });
 }
 
-// Wydzielona logika filtrowania (dla porządku)
 function filterTableLogic(term) {
     const filtered = data.filter(item => item.film.toLowerCase().includes(term));
-    
-    const tbody = document.querySelector("#rankingTable tbody");
-    if (!tbody) return;
-    
-    tbody.innerHTML = "";
-    const sorted = applyCurrentSortArray([...filtered]);
-    
-    sorted.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.dataset.id = item.id;
-        
-        // Prawy przycisk myszy
-        tr.addEventListener("contextmenu", (ev) => {
-            ev.preventDefault();
-            if (!isAdmin) {
-                showNotification("🔒 Edycja tylko dla admina", "error");
-                return;
-            }
-            showRatingDetails(item);
-        });
-
-        // Tytuł + Ikonka Filmweb (Wersja dla wyszukiwarki)
-        const tdFilm = document.createElement("td");
-        tdFilm.style.display = "flex";
-        tdFilm.style.alignItems = "center";
-        tdFilm.style.justifyContent = "space-between";
-
-        const titleSpan = document.createElement("span");
-        titleSpan.style.fontWeight = "500";
-        titleSpan.textContent = item.film;
-
-        const fwIcon = document.createElement("img");
-        fwIcon.src = "https://www.filmweb.pl/favicon.ico";
-        fwIcon.alt = "FW";
-        fwIcon.title = "Szukaj na Filmwebie";
-        fwIcon.style.width = "16px";
-        fwIcon.style.height = "16px";
-        fwIcon.style.cursor = "pointer";
-        fwIcon.style.opacity = "0.6";
-        fwIcon.style.transition = "opacity 0.2s";
-        fwIcon.style.marginLeft = "10px";
-
-        fwIcon.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const query = encodeURIComponent(item.film);
-            window.open(`https://www.filmweb.pl/search?q=${query}`, '_blank');
-        });
-
-        fwIcon.addEventListener("mouseenter", () => fwIcon.style.opacity = "1");
-        fwIcon.addEventListener("mouseleave", () => fwIcon.style.opacity = "0.6");
-
-        tdFilm.appendChild(titleSpan);
-        tdFilm.appendChild(fwIcon);
-        tr.appendChild(tdFilm);
-        
-        const tdRating = document.createElement("td");
-        const avg = parseFloat(item.avgRating || item.rating || 0);
-        tdRating.textContent = avg.toFixed(1);
-        tdRating.style.textAlign = 'center';
-        tdRating.style.fontWeight = '700';
-        
-        if (avg >= 8) tdRating.style.color = '#10b981';
-        else if (avg >= 5) tdRating.style.color = '#f59e0b';
-        else tdRating.style.color = '#ef4444';
-        
-        tr.appendChild(tdRating);
-        tbody.appendChild(tr);
-    });
+    renderTiles(filtered);
 }
 
 // ============================================================
@@ -707,25 +700,25 @@ function setupUsersListener() {
         } else {
             users = [];
         }
-        updateUserSelect(); 
-        if(document.getElementById('usersList')) populateUsersList();
+        updateUserSelect();
+        if (document.getElementById('usersList')) populateUsersList();
     });
 }
 
 function updateUserSelect() {
     const userSelect = document.getElementById("userSelect");
     if (!userSelect) return;
-    
+
     const current = userSelect.value;
     userSelect.innerHTML = '<option value=""> wybierz użytkownika </option>';
-    
+
     users.forEach(user => {
         const opt = document.createElement('option');
         opt.value = user;
         opt.textContent = user;
         userSelect.appendChild(opt);
     });
-    
+
     if (current && users.includes(current)) userSelect.value = current;
 }
 
@@ -733,16 +726,16 @@ function showAddUserModal() {
     const modalHTML = `
         <div id="addUserModal" class="modal-overlay">
             <div class="modal-content">
-                <div class="modal-header"><h3>Nowy użytkownik</h3><button class="modal-close">&times;</button></div>
+                <div class="modal-header"><h3>Nowy użytkownik</h3></div>
                 <div class="modal-body">
                     <div class="modal-input-group">
-                        <label>Nazwa:</label>
+                        <label>Nazwa użytkownika</label>
                         <input type="text" id="newUserName" placeholder="Nazwa..." maxlength="20">
                     </div>
-                    <div class="modal-actions">
-                        <button id="cancelAddUser" class="btn-cancel">Anuluj</button>
-                        <button id="confirmAddUser" class="btn-confirm">Dodaj</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelAddUser" class="btn-cancel">Anuluj</button>
+                    <button id="confirmAddUser" class="btn-confirm">Dodaj</button>
                 </div>
             </div>
         </div>
@@ -750,7 +743,7 @@ function showAddUserModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     const modal = document.getElementById('addUserModal');
     const closeModal = () => modal.remove();
-    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+
     modal.querySelector('#cancelAddUser').addEventListener('click', closeModal);
     modal.querySelector('#confirmAddUser').addEventListener('click', () => {
         const name = document.getElementById('newUserName').value.trim();
@@ -770,10 +763,12 @@ function showManageUsersModal() {
     const modalHTML = `
         <div id="manageUsersModal" class="modal-overlay">
             <div class="modal-content">
-                <div class="modal-header"><h3>Zarządzaj</h3><button class="modal-close">&times;</button></div>
+                <div class="modal-header"><h3>Zarządzaj użytkownikami</h3></div>
                 <div class="modal-body">
                     <div class="users-list" id="usersList">Ładowanie...</div>
-                    <div class="modal-actions"><button id="closeManage" class="btn-cancel">Zamknij</button></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeManage" class="btn-cancel" style="width: 100%;">Zamknij</button>
                 </div>
             </div>
         </div>
@@ -782,31 +777,26 @@ function showManageUsersModal() {
     populateUsersList();
     const modal = document.getElementById('manageUsersModal');
     const closeModal = () => modal.remove();
-    modal.querySelector('.modal-close').addEventListener('click', closeModal);
     modal.querySelector('#closeManage').addEventListener('click', closeModal);
 }
 
 function populateUsersList() {
     const list = document.getElementById('usersList');
-    if(!list) return;
+    if (!list) return;
     list.innerHTML = '';
-    
+
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
-        div.style.cssText = 'display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;';
         div.innerHTML = `<span>${user}</span>`;
-        
+
         const delBtn = document.createElement('button');
         delBtn.textContent = '🗑';
         delBtn.className = 'btn-delete-user';
-        delBtn.style.cssText = 'padding:5px 10px; background:var(--error); border:none; border-radius:3px; color:white; cursor:pointer;';
-        
+
         delBtn.onclick = () => {
-            if(confirm(`Usunąć ${user}?`)) {
                 usersRef.child(user).remove();
                 showNotification('Usunięto', 'success');
-            }
         };
         div.appendChild(delBtn);
         list.appendChild(div);
@@ -818,7 +808,6 @@ function populateUsersList() {
 // ============================================================
 
 function setupScrollButtons() {
-    // Wstrzyknięcie HTML dla przycisków
     const scrollHTML = `
         <div id="scrollDownBtn" class="scroll-btn" title="Down">↓</div>
         <div id="scrollUpBtn" class="scroll-btn" title="Up">↑</div>
@@ -828,7 +817,6 @@ function setupScrollButtons() {
     const scrollUpBtn = document.getElementById('scrollUpBtn');
     const scrollDownBtn = document.getElementById('scrollDownBtn');
 
-    // Logika kliknięć (płynne przewijanie)
     scrollUpBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -837,31 +825,90 @@ function setupScrollButtons() {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     });
 
-    // Logika widoczności podczas scrollowania
     window.addEventListener('scroll', () => {
         const scrollY = window.scrollY;
-        // Obliczamy ile można maksymalnie przescrollować stronę
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 
-        // Przycisk "W górę" pojawia się po zjechaniu 200px w dół
-        if (scrollY > 200) {
-            scrollUpBtn.classList.add('visible');
-        } else {
-            scrollUpBtn.classList.remove('visible');
-        }
+        if (scrollY > 200) scrollUpBtn.classList.add('visible');
+        else scrollUpBtn.classList.remove('visible');
 
-        // Przycisk "W dół" znika, gdy jesteśmy na samym dole (margines 50px)
-        if (scrollY < maxScroll - 50) {
-            scrollDownBtn.classList.add('visible');
-        } else {
-            scrollDownBtn.classList.remove('visible');
-        }
+        if (scrollY < maxScroll - 50) scrollDownBtn.classList.add('visible');
+        else scrollDownBtn.classList.remove('visible');
     });
 
-    // Odpalamy raz na starcie, żeby ustawić początkową widoczność
     window.dispatchEvent(new Event('scroll'));
 }
 
+function setupTopBarSettings() {
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsMenu = document.getElementById('settingsMenu');
+    
+    const bgToggleBtn = document.getElementById('bgToggle');
+    const bgIcon = document.getElementById('bgIcon');
+    
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    if (!settingsToggle || !settingsMenu) return;
+
+    // Rozwijanie / zwijanie menu
+    settingsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!settingsMenu.contains(e.target)) {
+            settingsMenu.classList.remove('show');
+        }
+    });
+
+    // CZYSTE IKONY SVG ZGODNE Z DESIGNEM
+    const svgMoon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    const svgSun = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    
+    const svgSparkles = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3m9-9h-3M6 12H3m14.485-6.364l-2.121 2.121M7.636 17.678l-2.121 2.121m13.435 0l-2.121-2.121M7.636 6.364L5.515 4.243"/></svg>`;
+    const svgImage = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+
+    // --- 1. Logika Motywu ---
+    let isLightMode = localStorage.getItem('lightMode') === 'true';
+    
+    const updateThemeIcon = () => {
+        if (themeIcon) {
+            themeIcon.innerHTML = isLightMode ? svgSun : svgMoon;
+        }
+    };
+    updateThemeIcon();
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            isLightMode = !isLightMode;
+            localStorage.setItem('lightMode', isLightMode);
+            updateThemeIcon();
+            // Możesz tu dodać ewentualnie dodawanie klasy dla trybu jasnego, 
+            // jeśli użyjesz go z kropką "white".
+        });
+    }
+
+    // --- 2. Logika Tła ---
+    let isStatic = localStorage.getItem('staticBg') === 'true';
+
+    const updateBgState = () => {
+        document.body.classList.toggle('static-mode', isStatic);
+        if (bgIcon) {
+            bgIcon.innerHTML = isStatic ? svgImage : svgSparkles;
+        }
+    };
+    updateBgState();
+
+    if (bgToggleBtn) {
+        bgToggleBtn.addEventListener('click', () => {
+            isStatic = !isStatic;
+            localStorage.setItem('staticBg', isStatic);
+            updateBgState();
+        });
+    }
+}
 
 // ----------------------------
 // UTILS
@@ -869,12 +916,12 @@ function setupScrollButtons() {
 function showNotification(message, type = 'info') {
     const existing = document.querySelector('.notification');
     if (existing) existing.remove();
-    
+
     const notif = document.createElement('div');
     notif.className = `notification notification-${type}`;
     notif.textContent = message;
     document.body.appendChild(notif);
-    
+
     setTimeout(() => {
         if (notif.parentNode) {
             notif.style.animation = 'slideOut 0.3s ease';
@@ -883,13 +930,12 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Motywy
 function setupThemeChanger() {
     const themeDots = document.querySelectorAll('.theme-dot');
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
-    
+
     const originalNotify = window.showNotification;
-    window.showNotification = function() {}; 
+    window.showNotification = function () { };
     changeTheme(savedTheme);
     window.showNotification = originalNotify;
     updateActiveDot(savedTheme);
@@ -898,7 +944,7 @@ function setupThemeChanger() {
         dot.addEventListener('click', () => {
             const theme = dot.getAttribute('data-theme');
             const originalNotify = window.showNotification;
-            window.showNotification = function() {}; 
+            window.showNotification = function () { };
             changeTheme(theme);
             window.showNotification = originalNotify;
             updateActiveDot(theme);
@@ -924,20 +970,29 @@ function changeTheme(themeName) {
         orange: { background: '#1a100a', surface: '#2b1d15', primary: '#f97316', glow1: 'rgba(249, 115, 22, 0.15)', glow2: 'rgba(200, 50, 0, 0.05)', filter: 'hue-rotate(100deg)' },
         original: { background: '#0f0f1f', surface: 'rgba(25, 25, 45, 0.8)', primary: '#8b5cf6', glow1: 'rgba(139, 92, 246, 0.15)', glow2: 'rgba(64, 147, 193, 0.05)', filter: 'none' }
     };
-    
+
     const theme = themes[themeName] || themes.original;
     const root = document.documentElement;
-    
-    // Zmieniamy tylko zmienne, CSS sam nałoży animacje
+
+    // EFEKT SHIMMER: Wymuszenie rozbłysku przy kliknięciu
+    document.body.classList.remove('theme-changing');
+    void document.body.offsetWidth; // Magiczny hack (reflow) resetujący animację, żeby można było klikać szybko wiele razy
+    document.body.classList.add('theme-changing');
+
+    // Zmiana zmiennych CSS pod maską
     root.style.setProperty('--background', theme.background);
     root.style.setProperty('--surface', theme.surface);
     root.style.setProperty('--primary', theme.primary);
     root.style.setProperty('--glow1', theme.glow1);
     root.style.setProperty('--glow2', theme.glow2);
     root.style.setProperty('--particle-filter', theme.filter);
+
+    // Posprzątanie klasy po zakończeniu animacji
+    setTimeout(() => {
+        document.body.classList.remove('theme-changing');
+    }, 1500);
 }
 
-// Konwerter HEX na RGB dla fluid.js
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -952,5 +1007,75 @@ function loadSavedTheme() {
     if (savedTheme) changeTheme(savedTheme);
 }
 
-// Start
 document.addEventListener('DOMContentLoaded', initApp);
+
+// ==========================================
+// --- LOGIKA MOTYWU (JASNY/CIEMNY) ---
+// ==========================================
+const themeToggleBtn = document.getElementById('themeToggle');
+const htmlElement = document.documentElement; 
+
+if (themeToggleBtn) {
+    const sunIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    const moonIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'light') {
+        htmlElement.classList.add('dark'); // dark klasa u Ciebie to jasny motyw
+        themeToggleBtn.innerHTML = sunIcon;
+    } else {
+        htmlElement.classList.remove('dark');
+        themeToggleBtn.innerHTML = moonIcon;
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        htmlElement.classList.toggle('dark');
+        
+        if (htmlElement.classList.contains('dark')) {
+            localStorage.setItem('theme', 'light');
+            themeToggleBtn.innerHTML = sunIcon;
+        } else {
+            localStorage.setItem('theme', 'dark');
+            themeToggleBtn.innerHTML = moonIcon;
+        }
+    });
+}
+
+// ==========================================
+// --- LOGIKA TŁA (ANIMOWANE / STATYCZNE) ---
+// ==========================================
+const bgToggleBtn = document.getElementById('bgToggle');
+const fluidCanvas = document.getElementById('fluid-canvas'); // stary canvas
+const ambientBg = document.querySelector('.ambient-bg');     // nowe bańki
+const contentCanvas = document.querySelector('.content--canvas'); 
+
+if (bgToggleBtn) {
+    let isStatic = localStorage.getItem('staticBg') === 'true';
+
+    const updateBgState = () => {
+        if (isStatic) {
+            // Ukrywamy płyny i bańki, dodajemy klasę dla siatki statycznej
+            if (fluidCanvas) fluidCanvas.style.opacity = '0';
+            if (ambientBg) ambientBg.style.opacity = '0';
+            if (contentCanvas) contentCanvas.style.opacity = '0';
+            document.body.classList.add('static-mode');
+        } else {
+            // Pokazujemy z powrotem
+            if (fluidCanvas) fluidCanvas.style.opacity = '1';
+            if (ambientBg) ambientBg.style.opacity = '1';
+            if (contentCanvas) contentCanvas.style.opacity = '1';
+            document.body.classList.remove('static-mode');
+        }
+    };
+
+    // Odpalamy przy wejściu na stronę
+    updateBgState();
+
+    bgToggleBtn.addEventListener('click', () => {
+        isStatic = !isStatic;
+        localStorage.setItem('staticBg', isStatic);
+        updateBgState();
+        showNotification(isStatic ? "Tryb wydajności: Tło statyczne" : "Tło animowane włączone", "info");
+    });
+}

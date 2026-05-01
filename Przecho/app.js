@@ -173,7 +173,7 @@ async function uploadFile() {
 
     try {
         // Etap 1: Pobieramy bilet na wrzucenie pliku omijając limity skryptu
-        const urlReq = `${WORKER_URL}/get-upload-url?file=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type || 'application/octet-stream')}&expiry=${duration}`;
+        const urlReq = `${WORKER_URL}/get-upload-url?file=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type || 'application/octet-stream')}&expiry=${duration}&size=${file.size}`;
         
         const response = await fetch(urlReq);
         const data = await response.json();

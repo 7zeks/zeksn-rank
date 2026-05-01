@@ -95,6 +95,33 @@
 </div>
         </header>
 
+        <div class="search-container">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="Szukaj filmu lub serialu...">
+            </div>
+        </div>
+
+        <!-- PASEK FILTRÓW I SORTOWANIA -->
+<div class="filters-bar">
+    <button class="filter-pill sort-pill" data-sort="film">Sortuj: A-Z</button>
+    
+    <div class="menu-divider-vertical" style="height: 30px; margin: 0 10px; background: rgba(255,255,255,0.1);"></div>
+
+    <!-- NOWE: FILTR UŻYTKOWNIKA -->
+    <select id="userFilterSelect" class="filter-pill user-select-pill">
+        <option value="all">Wszyscy użytkownicy</option>
+    </select>
+
+    <div class="menu-divider-vertical" style="height: 30px; margin: 0 10px; background: rgba(255,255,255,0.1);"></div>
+
+    <button class="filter-pill active" data-filter="all">All</button>
+    <button class="filter-pill" data-filter="new">New</button>
+    <button class="filter-pill" data-filter="top5">Top 5</button>
+    
+    <div class="menu-divider-vertical" style="height: 30px; margin: 0 10px; background: rgba(255,255,255,0.1);"></div>
+
+    <button class="filter-pill sort-pill active-sort" data-sort="rating">Sortuj: Ocena</button>
+</div>
 
         <section class="table-container"
             style="background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border: none !important; box-shadow: none !important;">
@@ -122,6 +149,7 @@
     <script src="fluid.js">
     </script>
     <script src="app.js"></script>
+    <script src="ranking.js"></script>
 
 </body>
 

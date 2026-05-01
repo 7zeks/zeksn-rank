@@ -441,3 +441,32 @@ if (themeToggleBtn) {
         }
     });
 }
+
+// ==========================================
+// --- NAPRAWA ANIMACJI PO POWROCIE WSTECZ (BFCache) ---
+// ==========================================
+window.addEventListener('pageshow', (event) => {
+    // Jeśli strona została przywrócona z pamięci podręcznej (przycisk Wstecz)
+    // lub po prostu ładuje się na nowo, zdejmujemy wszystkie klasy "uciekające"
+    
+    // 1. Odkrywamy cały interfejs
+    document.body.classList.remove('is-navigating');
+    
+    // 2. Zabieramy klasę "is-diving" ze wszystkich kart, żeby wróciły na miejsce
+    const divingCards = document.querySelectorAll('.card.is-diving');
+    divingCards.forEach(card => card.classList.remove('is-diving'));
+    
+    // 3. Ponownie otwieramy śluzę
+    const irisContainer = document.getElementById('irisContainer');
+    if (irisContainer && !irisContainer.classList.contains('is-open')) {
+        irisContainer.classList.add('is-open');
+    }
+
+    // 4. Przywracamy przyciski nawigacyjne karuzeli, które wcześniej ukryliśmy
+    if (typeof prevBtn !== 'undefined' && typeof nextBtn !== 'undefined') {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.pointerEvents = 'auto';
+        nextBtn.style.opacity = '1';
+        nextBtn.style.pointerEvents = 'auto';
+    }
+});

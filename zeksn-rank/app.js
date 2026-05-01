@@ -40,7 +40,6 @@ const restreamRef = firebase.database().ref("restream");
 let data = [];
 let users = [];
 let restreamSites = [];
-let currentSort = { key: "rating", dir: -1 };
 let currentUser = "";
 let isAdmin = false;
 
@@ -62,14 +61,6 @@ function initApp() {
         setupAddUserButton();
         setupIndexEventListeners();
         populateRatingSelect();
-    }
-
-    if (isRankingPage) {
-        console.log('>>> Setup Ranking');
-        setupSearch();
-        setupRankingEventListeners();
-        setupRankingListeners();
-        loadInitialRankingData();
     }
 
     setupUsersListener();
@@ -274,12 +265,14 @@ async function handleSaveRating() {
     const movieTitle = document.getElementById("movieTitle");
     const ratingInput = document.getElementById("ratingInput");
     const ratingSelect = document.getElementById("ratingSelect");
+    const noteInput = document.getElementById("noteInput"); // Złapanie notatki
 
     const user = userSelect.value;
     const film = movieTitle.value.trim();
     let ratingText = ratingInput.value.trim() || ratingSelect.value;
     ratingText = ratingText.replace(',', '.');
     const rating = parseFloat(ratingText);
+    const note = noteInput ? noteInput.value.trim() : ""; // Odczyt notatki
 
     if (!user || !film) return;
     if (isNaN(rating) || rating < 0 || rating > 10) {
@@ -309,11 +302,18 @@ async function handleSaveRating() {
         if (existingKey && existingData) {
             const userRatings = existingData.ratings || {};
             userRatings[user] = rating.toString();
+            
+            // AKTUALIZACJA NOTATEK W ISTNIEJĄCYM FILMIE
+            const userNotes = existingData.notes || {};
+            if (note) userNotes[user] = note; 
+            else delete userNotes[user];
+
             const arr = Object.values(userRatings).map(r => parseFloat(r));
             const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
 
             await dbRef.child(existingKey).update({
                 ratings: userRatings,
+                notes: userNotes,
                 avgRating: avg.toFixed(1),
                 film: existingData.film
             });
@@ -321,9 +321,12 @@ async function handleSaveRating() {
         } else {
             const key = normalizedFilm.replace(/[^a-z0-9]/g, '_');
             const userRatings = { [user]: rating.toString() };
+            const userNotes = note ? { [user]: note } : {}; // DODANIE NOTATKI DO NOWEGO FILMU
+            
             await dbRef.child(key).set({
                 film: film,
                 ratings: userRatings,
+                notes: userNotes,
                 avgRating: rating.toFixed(1),
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             });
@@ -338,359 +341,12 @@ async function handleSaveRating() {
     movieTitle.value = "";
     ratingInput.value = "";
     ratingSelect.selectedIndex = 0;
+    if (noteInput) noteInput.value = ""; // Czyszczenie pola
     movieTitle.focus();
 }
 
 // ============================================================
-// SEKCJA 3: RANKING
-// ============================================================
-
-function setupRankingEventListeners() {
-    const headers = document.querySelectorAll(".ranking-header-row div");
-    if (headers) {
-        headers.forEach(h => {
-            h.addEventListener("click", () => {
-                // Rozpoznajemy, w którą kolumnę kliknął użytkownik
-                if (h.classList.contains('col-rank')) handleSort('rank');
-                else if (h.classList.contains('col-change')) handleSort('change');
-                else if (h.classList.contains('col-team')) handleSort('film');
-                else if (h.classList.contains('col-pf')) handleSort('rating');
-            });
-        });
-    }
-}
-
-function setupRankingListeners() {
-    dbRef.on("value", snapshot => {
-        if (snapshot.exists()) {
-            data = [];
-            snapshot.forEach(child => {
-                const v = child.val();
-                data.push({ 
-                    id: child.key, 
-                    film: v.film, 
-                    ratings: v.ratings || { [v.user]: v.rating }, 
-                    avgRating: v.avgRating || v.rating,
-                    createdAt: v.createdAt || 0
-                });
-            });
-
-            // --- NOWOŚĆ: Nadajemy twardy ranking na podstawie samej oceny ---
-            // 1. Układamy dane od najlepszej do najgorszej oceny
-            data.sort((a, b) => {
-                const rA = parseFloat(a.avgRating || a.rating || 0);
-                const rB = parseFloat(b.avgRating || b.rating || 0);
-                return rB - rA; // sortowanie malejące
-            });
-
-            // 2. Każdemu filmowi zapisujemy na sztywno jego miejsce
-            data.forEach((item, index) => {
-                item.trueRank = index + 1;
-            });
-
-            renderFullTable();
-        } else {
-            const container = document.getElementById("rankingTilesContainer");
-            if (container) container.innerHTML = '<div style="color: white; padding: 20px;">Brak danych w rankingu.</div>';
-        }
-    });
-}
-
-function loadInitialRankingData() { }
-
-function renderFullTable() {
-    renderTiles(data);
-}
-
-function filterTableLogic(term) {
-    const filtered = data.filter(item => item.film.toLowerCase().includes(term));
-    renderTiles(filtered);
-}
-
-// Funkcja generująca płynny gradient koloru na podstawie oceny (0-10)
-function getDynamicRatingColor(avg) {
-    // Zabezpieczenie przed dziwnymi wartościami (wymusza zakres 0-10)
-    const rating = Math.max(0, Math.min(10, parseFloat(avg || 0)));
-
-    if (rating >= 8.0) {
-        // 8.0 do 10.0 -> Przejście w mocny fiolet motywu
-        // Różowo-fioletowy przechodzi w głęboki, nasycony fiolet
-        const progress = (rating - 8) / 2; // Progres od 0.0 do 1.0
-        const hue = 290 - (progress * 30); // Zmiana barwy z 290 na 260
-        const lightness = 70 - (progress * 10); // Odrobina przyciemnienia przy 10
-        return `hsl(${hue}, 90%, ${lightness}%)`;
-    } 
-    else if (rating >= 5.0) {
-        // 5.0 do 7.9 -> Pomarańcz przechodzący płynnie w zieleń
-        const progress = (rating - 5) / 2.9; 
-        const hue = 35 + (progress * 115); // Barwa z 35 (pomarańcz) na 150 (zieleń)
-        return `hsl(${hue}, 85%, 55%)`;
-    } 
-    else {
-        // 0.0 do 4.9 -> Czerwień przechodząca w pomarańcz
-        const progress = rating / 4.9;
-        const hue = progress * 35; // Barwa z 0 (czerwień) na 35 (pomarańcz)
-        return `hsl(${hue}, 90%, 60%)`;
-    }
-}
-
-// 2. Nowa uniwersalna funkcja do budowania kafelków
-function renderTiles(dataToRender) {
-    const container = document.getElementById("rankingTilesContainer");
-    if (!container) return;
-
-    container.innerHTML = "";
-    const sorted = applyCurrentSortArray([...dataToRender]);
-
-    sorted.forEach((item, index) => {
-        const tile = document.createElement("div");
-        tile.className = "ranking-tile";
-        tile.dataset.id = item.id;
-        
-        // --- KLUCZOWE: PRAWY PRZYCISK MYSZY Z TWOJEGO KODU ---
-        tile.addEventListener("contextmenu", (e) => {
-            e.preventDefault();
-            // ---> BLOKADA <---
-            if (!isAdmin) {
-                showNotification("admin", "error");
-                return;
-            }
-            showRatingDetails(item); 
-        });
-
-        // --- OCENA I KOLORY (PŁYNNE) ---
-        const avg = parseFloat(item.avgRating || item.rating || 0);
-        const ratingColor = getDynamicRatingColor(avg);
-
-        // --- SPRAWDZANIE CZY FILM JEST NOWY (dodany max 3 dni temu) ---
-        const TRZY_DNI_W_MS = 3 * 24 * 60 * 60 * 1000;
-        let changeHTML = '<span style="color: var(--text-muted);">-</span>';
-        
-        if (item.createdAt && (Date.now() - item.createdAt < TRZY_DNI_W_MS)) {
-            // Neutralny, elegancki wygląd "NEW" (biały z bardzo delikatną poświatą)
-            changeHTML = '<span style="color: rgba(255, 255, 255, 0.85); font-weight: 800; font-size: 0.85rem;opacity: 0.75 ; letter-spacing: 1.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);">NEW</span>';
-        }
-
-        // --- STRUKTURA KAFELKA ---
-        tile.innerHTML = `
-            <div class="col-rank">${item.trueRank}</div>
-            <div class="col-change">${changeHTML}</div>
-            
-            <div class="col-team">
-                <div class="team-banner"></div>
-                <span class="team-name" title="${item.film}">${item.film}</span>
-                
-                <div class="filmweb-icon-wrapper" title="Szukaj na Filmwebie">
-                    <img class="fw-icon" src="https://www.filmweb.pl/favicon.ico" alt="FW">
-                </div>
-            </div>
-
-            <div class="col-pf" style="color: ${ratingColor};">
-                ${avg.toFixed(1)}
-            </div>
-        `;
-
-        // --- LOGIKA KLIKNIĘCIA I HOVERA ---
-        const fwWrapper = tile.querySelector('.filmweb-icon-wrapper');
-        
-        fwWrapper.addEventListener("click", (e) => {
-            e.stopPropagation(); // Żeby nie kolidowało z innymi kliknięciami
-            const query = encodeURIComponent(item.film);
-            window.open(`https://www.filmweb.pl/search#/all?query=${query}`);
-        });
-
-        // --- WAŻNE: Dodanie gotowego kafelka na stronę ---
-        container.appendChild(tile);
-    });
-}
-
-function showRatingDetails(item) {
-    const ratings = item.ratings || { [item.user]: item.rating };
-
-    let detailsHTML = '<div class="rating-details-container">';
-    detailsHTML += '<strong>Szczegóły ocen:</strong><br><br>';
-
-    Object.entries(ratings).forEach(([user, rating]) => {
-        detailsHTML += `
-            <div class="rating-item">
-                <div><strong>${user}:</strong> ${parseFloat(rating).toFixed(1)}</div>
-                <div class="rating-actions">
-                    <button class="btn-edit-rating" data-user="${user}">✎</button>
-                    <button class="btn-delete-rating" data-user="${user}">🗑</button>
-                </div>
-            </div>
-        `;
-    });
-    detailsHTML += `</div>`;
-
-    const modalHTML = `
-        <div id="ratingDetailsModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>${item.film}</h3>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    ${detailsHTML}
-                    <div class="modal-actions"><button id="closeRatingDetails" class="btn-cancel">Zamknij</button></div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    const modal = document.getElementById('ratingDetailsModal');
-
-    modal.querySelectorAll('.btn-edit-rating').forEach(btn => {
-        btn.addEventListener('click', () => editUserRating(item, btn.dataset.user, ratings[btn.dataset.user]));
-    });
-    modal.querySelectorAll('.btn-delete-rating').forEach(btn => {
-        btn.addEventListener('click', () => deleteUserRating(item, btn.dataset.user));
-    });
-
-    const closeModal = () => modal.remove();
-    modal.querySelector('.modal-close').addEventListener('click', closeModal);
-    modal.querySelector('#closeRatingDetails').addEventListener('click', closeModal);
-}
-
-function editUserRating(item, user, currentRating) {
-    const newRating = prompt(`Nowa ocena użytkownika ${user}:`, currentRating);
-    if (newRating === null) return;
-
-    const parsed = parseFloat(newRating.replace(',', '.'));
-    if (isNaN(parsed) || parsed < 0 || parsed > 10) {
-        showNotification("Błędna ocena", "error");
-        return;
-    }
-
-    const updatedRatings = { ...item.ratings };
-    updatedRatings[user] = parsed.toString();
-
-    const arr = Object.values(updatedRatings).map(r => parseFloat(r));
-    const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
-
-    dbRef.child(item.id).update({
-        ratings: updatedRatings,
-        avgRating: avg.toFixed(1)
-    }).then(() => {
-        showNotification("Zaktualizowano ocenę", "success");
-        document.getElementById('ratingDetailsModal').remove();
-    });
-}
-
-function deleteUserRating(item, user) {
-
-    const updatedRatings = { ...item.ratings };
-    delete updatedRatings[user];
-
-    if (Object.keys(updatedRatings).length === 0) {
-        dbRef.child(item.id).remove();
-        showNotification("Usunięto film (brak ocen)", "success");
-    } else {
-        const arr = Object.values(updatedRatings).map(r => parseFloat(r));
-        const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
-
-        dbRef.child(item.id).update({
-            ratings: updatedRatings,
-            avgRating: avg.toFixed(1)
-        });
-        showNotification("Usunięto ocenę", "success");
-    }
-    document.getElementById('ratingDetailsModal').remove();
-}
-
-function handleSort(header) {
-    const key = header.dataset.sort;
-    if (!key) return;
-    if (currentSort.key === key) currentSort.dir *= -1;
-    else currentSort = { key: key, dir: key === "rating" ? -1 : 1 };
-    renderFullTable();
-}
-
-function handleSort(key) {
-    if (!key) return;
-    
-    // Jeśli klikasz w to samo, odwróć kolejność (np. Z-A, najniższe oceny)
-    if (currentSort.key === key) {
-        currentSort.dir *= -1; 
-    } else {
-        // Domyślne kierunki dla pierwszego kliknięcia w daną kolumnę
-        let defaultDir = 1; // Dla RANK i FILM: rosnąco (1-99, A-Z)
-        if (key === 'rating' || key === 'change') {
-            defaultDir = -1; // Dla OCENY i CHANGE: malejąco (Najwyższe oceny i najnowsze filmy na górze)
-        }
-        currentSort = { key: key, dir: defaultDir };
-    }
-    renderFullTable();
-}
-
-function applyCurrentSortArray(arr) {
-    return arr.sort((a, b) => {
-        if (currentSort.key === "rating") {
-            // Sortowanie po ocenie
-            const rA = parseFloat(a.avgRating || a.rating || 0);
-            const rB = parseFloat(b.avgRating || b.rating || 0);
-            return (rA - rB) * currentSort.dir;
-            
-        } else if (currentSort.key === "rank") {
-            // Sortowanie po twardej pozycji w rankingu
-            return (a.trueRank - b.trueRank) * currentSort.dir;
-            
-        } else if (currentSort.key === "change") {
-            // Sortowanie od najnowszych (po dacie dodania)
-            const tA = a.createdAt || 0;
-            const tB = b.createdAt || 0;
-            return (tA - tB) * currentSort.dir;
-            
-        } else {
-            // Sortowanie alfabetyczne po tytule
-            return a.film.localeCompare(b.film) * currentSort.dir;
-        }
-    });
-}
-
-function setupSearch() {
-    const tableContainer = document.querySelector('.table-container');
-    if (!tableContainer) return;
-
-    const searchHTML = `
-        <div class="search-container">
-            <div class="search-wrapper">
-                <input type="text" id="searchInput" class="search-input" placeholder="Szukaj filmu...">
-                <button id="searchClear" class="search-clear-btn" title="Wyczyść">✕</button>
-            </div>
-        </div>
-    `;
-
-    const oldWrapper = document.querySelector('.search-container');
-    if (oldWrapper) oldWrapper.remove();
-
-    tableContainer.insertAdjacentHTML('beforebegin', searchHTML);
-
-    const searchInput = document.getElementById('searchInput');
-    const clearBtn = document.getElementById('searchClear');
-
-    searchInput.addEventListener('keyup', (e) => {
-        const term = e.target.value.toLowerCase().trim();
-        clearBtn.style.display = term.length > 0 ? 'block' : 'none';
-        filterTableLogic(term);
-    });
-
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.style.display = 'none';
-        filterTableLogic('');
-        searchInput.focus();
-    });
-}
-
-function filterTableLogic(term) {
-    const filtered = data.filter(item => item.film.toLowerCase().includes(term));
-    renderTiles(filtered);
-}
-
-// ============================================================
-// SEKCJA 4: WSPÓLNE I UŻYTKOWNICY
+// SEKCJA 3: WSPÓLNE I UŻYTKOWNICY
 // ============================================================
 
 function setupUsersListener() {
@@ -871,13 +527,23 @@ function setupTopBarSettings() {
     const svgImage = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
 
     // --- 1. Logika Motywu ---
+    // --- 1. Logika Motywu ---
     let isLightMode = localStorage.getItem('lightMode') === 'true';
     
     const updateThemeIcon = () => {
         if (themeIcon) {
             themeIcon.innerHTML = isLightMode ? svgSun : svgMoon;
         }
+        
+        // Dodawanie/usuwanie klasy z elementu <html>
+        if (isLightMode) {
+            document.documentElement.classList.add('light-mode');
+        } else {
+            document.documentElement.classList.remove('light-mode');
+        }
     };
+    
+    // Wywołanie przy starcie, aby wczytać zapisany stan
     updateThemeIcon();
 
     if (themeToggleBtn) {
@@ -885,11 +551,8 @@ function setupTopBarSettings() {
             isLightMode = !isLightMode;
             localStorage.setItem('lightMode', isLightMode);
             updateThemeIcon();
-            // Możesz tu dodać ewentualnie dodawanie klasy dla trybu jasnego, 
-            // jeśli użyjesz go z kropką "white".
         });
     }
-
     // --- 2. Logika Tła ---
     let isStatic = localStorage.getItem('staticBg') === 'true';
 
@@ -1013,7 +676,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 // --- LOGIKA MOTYWU (JASNY/CIEMNY) ---
 // ==========================================
 const themeToggleBtn = document.getElementById('themeToggle');
-const htmlElement = document.documentElement; 
+const htmlElement = document.documentElement;
 
 if (themeToggleBtn) {
     const sunIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -1079,3 +742,96 @@ if (bgToggleBtn) {
         showNotification(isStatic ? "Tryb wydajności: Tło statyczne" : "Tło animowane włączone", "info");
     });
 }
+
+// ============================================================
+// AUTOUZUPEŁNIANIE (PODPOWIEDZI FILMÓW TMDB)
+// ============================================================
+const TMDB_API_KEY_AUTO = "48c52791cb1b9e1161aa996403fd4299"; // Twój klucz API
+
+function setupAutocomplete() {
+    const input = document.getElementById('movieTitle');
+    if (!input) return;
+
+    // 1. Tworzymy kontener na wyniki
+    const dropdown = document.createElement('div');
+    dropdown.className = 'autocomplete-dropdown';
+    dropdown.id = 'autocompleteResults';
+    
+    // 2. Owijamy Twój input w "wrapper", żeby lista rozwijała się idealnie pod nim
+    const wrapper = document.createElement('div');
+    wrapper.className = 'autocomplete-wrapper';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    wrapper.appendChild(dropdown);
+
+    let timeoutId;
+
+    // 3. Nasłuchujemy, co wpisujesz
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearTimeout(timeoutId); // Kasujemy poprzednie odliczanie
+        
+        if (query.length < 2) {
+            dropdown.style.display = 'none'; // Ukryj, jeśli mniej niż 2 znaki
+            return;
+        }
+
+        // Czekamy ułamek sekundy (300ms) po tym jak przestaniesz pisać, żeby nie spamować API
+        timeoutId = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY_AUTO}&query=${encodeURIComponent(query)}&language=pl-PL`);
+                const data = await res.json();
+                
+                // Wybieramy tylko filmy i seriale (bez aktorów) i bierzemy top 5 wyników
+                const results = (data.results || []).filter(item => item.media_type === 'movie' || item.media_type === 'tv').slice(0, 5);
+
+                if (results.length > 0) {
+                    dropdown.innerHTML = ''; // Czyścimy starą listę
+                    
+                    results.forEach(item => {
+                        const title = item.title || item.name;
+                        const year = (item.release_date || item.first_air_date || "").substring(0, 4);
+                        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : 'https://pub-c4bdff47af9f412bb44968e460266513.r2.dev/cf05c8b7-c646-40f6-9c14-a58df7de2b7a-77717a77-8185-4545-9d81-47efc7e56cfe.png';
+                        
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        div.innerHTML = `
+                            <img src="${poster}" class="autocomplete-poster" alt="Plakat">
+                            <div class="autocomplete-details">
+                                <span class="autocomplete-title">${title}</span>
+                                <span class="autocomplete-year">${year ? '(' + year + ')' : ''}</span>
+                            </div>
+                        `;
+                        
+                        // 4. Co się dzieje po kliknięciu w podpowiedź?
+                        div.addEventListener('click', () => {
+                            // Wklejamy do pola Tytuł wraz z Rokiem!
+                            input.value = year ? `${title} (${year})` : title;
+                            dropdown.style.display = 'none'; // Zamykamy listę
+                            input.focus(); // Zostawiamy kursor w polu
+                        });
+                        
+                        dropdown.appendChild(div);
+                    });
+                    dropdown.style.display = 'block'; // Pokazujemy listę
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Błąd autouzupełniania', err);
+            }
+        }, 300);
+    });
+
+    // 5. Zamykanie listy, jeśli klikniesz gdziekolwiek indziej na ekranie
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+// Uruchamiamy funkcję, gdy strona się załaduje
+document.addEventListener('DOMContentLoaded', () => {
+    setupAutocomplete();
+});

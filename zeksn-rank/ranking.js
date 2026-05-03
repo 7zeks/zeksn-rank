@@ -6,6 +6,7 @@
 let currentSort = { key: "rating", dir: -1 };
 let currentFilter = "all";
 let currentUserFilter = "all";
+let currentTypeFilter = "all";
 
 function initRanking() {
     console.log('>>> Inicjalizacja Rankingu...');
@@ -21,18 +22,23 @@ function setupRankingListeners() {
             data = [];
             snapshot.forEach(child => {
                 const v = child.val();
+                
+                // Bezpieczne wczytanie (jeśli ktoś dodał tylko sezon, omijamy awarie)
+                const ratings = v.ratings || {};
+                let avgRating = parseFloat(v.avgRating) || 0;
+                
                 data.push({ 
                     id: child.key, 
                     film: v.film, 
-                    ratings: v.ratings || { [v.user]: v.rating }, 
+                    ratings: ratings, 
                     notes: v.notes || {}, 
                     seasons: v.seasons || null, 
-                    avgRating: v.avgRating || v.rating,
+                    avgRating: avgRating,
                     createdAt: v.createdAt || 0
                 });
             });
 
-            // Nadawanie twardego rankingu (1, 2, 3...)
+            // Nadawanie twardego rankingu
             data.sort((a, b) => parseFloat(b.avgRating) - parseFloat(a.avgRating));
             data.forEach((item, index) => item.trueRank = index + 1);
 
@@ -208,12 +214,23 @@ function populateUserDropdown(allData) {
     if (!select) return;
     
     const users = new Set();
+    
+    // Szukamy ocenionych użytkowników zarówno w ocenach ogólnych jak i SEZONACH!
     allData.forEach(item => {
-        if (item.ratings) Object.keys(item.ratings).forEach(u => users.add(u));
+        if (item.ratings) {
+            Object.keys(item.ratings).forEach(u => users.add(u));
+        }
+        if (item.seasons) {
+            Object.values(item.seasons).forEach(sData => {
+                if (sData && sData.ratings) {
+                    Object.keys(sData.ratings).forEach(u => users.add(u));
+                }
+            });
+        }
     });
     
     const currentVal = select.value;
-    let html = '<option value="all">Wszystko</option>';
+    let html = '<option value="all">Wszyscy użytkownicy</option>';
     
     Array.from(users).sort().forEach(user => {
         html += `<option value="${user}">${user}</option>`;
@@ -239,6 +256,27 @@ function setupFilters() {
             applyFiltersAndRender();
         });
     });
+    
+    // NOWOŚĆ: Przeklikiwana kapsułka (Wszystko -> Filmy -> Seriale -> Wszystko)
+    const typePill = document.getElementById('typeTogglePill');
+    if (typePill) {
+        typePill.addEventListener('click', () => {
+            if (currentTypeFilter === 'all') {
+                currentTypeFilter = 'movie';
+                typePill.textContent = 'Typ: Filmy';
+                typePill.classList.add('active'); // Podświetla przycisk
+            } else if (currentTypeFilter === 'movie') {
+                currentTypeFilter = 'series';
+                typePill.textContent = 'Typ: Seriale';
+                typePill.classList.add('active');
+            } else {
+                currentTypeFilter = 'all';
+                typePill.textContent = 'Typ: Wszystko';
+                typePill.classList.remove('active'); // Wraca do neutralnego koloru
+            }
+            applyFiltersAndRender();
+        });
+    }
 
     // 2. Sortowanie (Nazwa, Ocena)
     document.querySelectorAll('.sort-pill').forEach(pill => {
@@ -262,27 +300,49 @@ function setupFilters() {
 
 function applyFiltersAndRender() {
     let filtered = [...data];
-    
-    // MAGIA: Twarde Filtrowanie po Użytkowniku
-    if (currentUserFilter !== 'all') {
-        // Zostawiamy TYLKO te filmy, które dany user faktycznie ocenił (mają jakąś wartość liczbową)
-        filtered = filtered.filter(i => {
-            if (!i.ratings) return false;
-            const userRating = i.ratings[currentUserFilter];
-            // Sprawdzamy, czy ocena w ogóle istnieje i nie jest pusta
-            return userRating !== undefined && userRating !== null && userRating !== "" && !isNaN(parseFloat(userRating));
-        });
-        
-        // Zmieniamy główną ocenę kafelka na osobistą ocenę tego usera
-        filtered.forEach(i => i.displayRating = parseFloat(i.ratings[currentUserFilter]));
-    } else {
-        // Tryb ogólny: wracamy do średniej oceny
-        filtered.forEach(i => i.displayRating = parseFloat(i.avgRating));
+
+    // Filtrowanie po Typie (Film czy Serial)
+    if (currentTypeFilter === 'movie') {
+        filtered = filtered.filter(i => !i.seasons);
+    } else if (currentTypeFilter === 'series') {
+        filtered = filtered.filter(i => i.seasons);
     }
     
-    // --- Reszta Twoich filtrów ---
+    // Filtrowanie po Użytkowniku (Upewnia się, że widzi sezony)
+    if (currentUserFilter !== 'all') {
+        filtered = filtered.filter(i => {
+            // Sprawdza czy oceniłeś cały film
+            let hasMainRating = i.ratings && i.ratings[currentUserFilter] !== undefined;
+            
+            // Sprawdza czy oceniłeś choćby 1 sezon tego serialu
+            let hasSeasonRating = false;
+            if (i.seasons) {
+                for (const sData of Object.values(i.seasons)) {
+                    if (sData && sData.ratings && sData.ratings[currentUserFilter] !== undefined) {
+                        hasSeasonRating = true;
+                        break;
+                    }
+                }
+            }
+            
+            return hasMainRating || hasSeasonRating; // Zostawia jeśli cokolwiek oceniłeś
+        });
+        
+        filtered.forEach(i => {
+            if (i.ratings && i.ratings[currentUserFilter] !== undefined) {
+                i.displayRating = parseFloat(i.ratings[currentUserFilter]);
+            } else {
+                i.displayRating = parseFloat(i.avgRating) || 0; 
+            }
+        });
+    } else {
+        // Tryb ogólny
+        filtered.forEach(i => i.displayRating = parseFloat(i.avgRating) || 0);
+    }
+    
+    // Reszta filtrów
     if (currentFilter === 'top5') {
-        filtered = filtered.slice(0, 5);
+        filtered = applyCurrentSortArray(filtered).slice(0, 5);
     } else if (currentFilter === 'new') {
         const limit = 3 * 24 * 60 * 60 * 1000; 
         filtered = filtered.filter(i => i.createdAt && (Date.now() - i.createdAt < limit));
@@ -543,30 +603,36 @@ async function deleteUserRating(itemId, user) {
 // --- NOWE OKNO: ZARZĄDZANIE SEZONAMI ---
 // ==========================================
 function showSeasonsModal(item) {
-    // Jeśli okno sezonów już jest otwarte, zamknij je
     const existingModal = document.getElementById('seasonsModal');
     if (existingModal) existingModal.remove();
 
-    // Generowanie listy sezonów
     let seasonsHTML = '';
     if (item.seasons) {
         for (const [seasonNum, seasonData] of Object.entries(item.seasons)) {
+            if (!seasonData) continue; 
+
             let ratingsText = '';
             if (seasonData.ratings) {
-                // Wewnątrz funkcji showSeasonsModal, w pętli generującej sezony:
-for (const [user, rating] of Object.entries(seasonData.ratings)) {
-    ratingsText += `
-        <span 
-            onclick="if(event.detail === 3) deleteSpecificSeasonRating('${item.id}', '${seasonNum}', '${user}')" 
-            title="Kliknij 3 razy szybko, aby usunąć tę ocenę" 
-            style="font-size: 0.85rem; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 4px; color: #ccc; cursor: pointer; user-select: none; transition: background 0.2s;"
-            onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
-            onmouseout="this.style.background='rgba(255,255,255,0.08)'"
-        >
-            <b>${user}:</b> ${rating}
-        </span> `;
-}
+                for (const [user, rating] of Object.entries(seasonData.ratings)) {
+                    // SPRAWDZANIE UPRAWNIEŃ: Czy gość może kliknąć i usunąć?
+                    const canDelete = isAdmin || user === loggedGuestName;
+                    const clickAction = canDelete ? `onclick="if(event.detail === 3) deleteSpecificSeasonRating('${item.id}', '${seasonNum}', '${user}')" title="Kliknij 3 razy szybko, aby usunąć swoją ocenę"` : `title="Ocena użytkownika ${user}"`;
+                    const hoverStyle = canDelete ? `onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"` : "";
+                    const cursorStyle = canDelete ? "cursor: pointer;" : "cursor: default;";
+
+                    ratingsText += `
+                        <span 
+                            ${clickAction} 
+                            style="font-size: 0.85rem; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 4px; color: #ccc; ${cursorStyle} user-select: none; transition: background 0.2s;"
+                            ${hoverStyle}
+                        >
+                            <b>${user}:</b> ${rating}
+                        </span> `;
+                }
             }
+
+            // X USUWAJĄCY CAŁY SEZON - WIDOCZNY TYLKO DLA ADMINA
+            const deleteSeasonBtn = isAdmin ? `<button onclick="deleteSeasonRecord('${item.id}', '${seasonNum}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 0 5px; transition: 0.2s;" title="Usuń sezon">✕</button>` : '';
 
             seasonsHTML += `
                 <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
@@ -574,7 +640,7 @@ for (const [user, rating] of Object.entries(seasonData.ratings)) {
                         <strong style="color: #fff; font-size: 0.95rem;">Sezon ${seasonNum}</strong>
                         ${ratingsText}
                     </div>
-                    <button onclick="deleteSeasonRecord('${item.id}', '${seasonNum}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 0 5px; transition: 0.2s;" title="Usuń sezon">✕</button>
+                    ${deleteSeasonBtn}
                 </div>
             `;
         }
@@ -582,14 +648,19 @@ for (const [user, rating] of Object.entries(seasonData.ratings)) {
         seasonsHTML = '<div style="text-align: center; padding: 20px 0; font-size: 0.9rem; color: rgba(255,255,255,0.4);">Ten serial nie ma jeszcze ocenionych sezonów.</div>';
     }
 
-    // Lista użytkowników do selecta (z wymuszonym "wybierz użytkownika")
-    const generatedUsers = (typeof users !== 'undefined' && users.length > 0) 
-        ? users.map(u => `<option value="${u}">${u}</option>`).join('') 
-        : `<option value="zeku">zeku</option><option value="pierozek">pierozek</option>`;
-        
-    const userOpts = `<option value="" disabled selected>wybierz użytkownika</option>` + generatedUsers;
+    // LISTA UŻYTKOWNIKÓW ZALEŻNA OD ROLI
+    let userOpts = '';
+    if (isAdmin) {
+        // Admin może wybierać do woli
+        const generatedUsers = (typeof users !== 'undefined' && users.length > 0) 
+            ? users.map(u => `<option value="${u}">${u}</option>`).join('') 
+            : `<option value="zeku">zeku</option><option value="pierozek">pierozek</option>`;
+        userOpts = `<option value="" disabled selected>wybierz użytkownika</option>` + generatedUsers;
+    } else {
+        // Gość widzi tylko siebie
+        userOpts = `<option value="${loggedGuestName}" selected>${loggedGuestName}</option>`;
+    }
 
-    // Budowa struktury HTML dla Nowego Okna (zmienione max-width na 600px)
     const modalHTML = `
         <div id="seasonsModal" class="modal-overlay">
             <div class="modal-content" style="max-width: 600px;">
@@ -604,7 +675,7 @@ for (const [user, rating] of Object.entries(seasonData.ratings)) {
                     </div>
 
                     <div style="display: flex; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                        <select id="newSeasonUser" class="form-input" style="width: auto; padding: 8px; flex: 1; border-radius: 4px;">
+                        <select id="newSeasonUser" class="form-input" style="width: auto; padding: 8px; flex: 1; border-radius: 4px;" ${isAdmin ? '' : 'disabled'}>
                             ${userOpts}
                         </select>
                         <input type="number" id="newSeasonNum" placeholder="Sezon" class="form-input" style="width: 70px; padding: 8px; text-align: center; border-radius: 4px;" min="1">
@@ -619,6 +690,7 @@ for (const [user, rating] of Object.entries(seasonData.ratings)) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+// --- POPRAWIONE FUNKCJE ODŚWIEŻANIA OKNA ---
 async function saveNewSeason(itemId) {
     const user = document.getElementById('newSeasonUser').value;
     const sNum = document.getElementById('newSeasonNum').value;
@@ -632,31 +704,39 @@ async function saveNewSeason(itemId) {
     try {
         await dbRef.child(itemId).child('seasons').child(sNum).child('ratings').child(user).set(sRating.toString());
         
-        // Odświeżamy okno zamiast je usuwać
-        const updatedItem = data.find(i => i.id === itemId);
-        if (updatedItem) {
-            showSeasonsModal(updatedItem);
+        // POBIERAMY ŚWIEŻE DANE Z BAZY I ODŚWIEŻAMY OKNO BEZ ZAMYKANIA
+        const snap = await dbRef.child(itemId).once('value');
+        if (snap.exists()) {
+            showSeasonsModal({ id: itemId, ...snap.val() });
         }
-        
         showNotification(`Dodano sezon ${sNum}`, "success");
     } catch (err) { console.error(err); }
 }
 
 async function deleteSpecificSeasonRating(itemId, seasonNum, user) {
     try {
-        // 1. Usuwamy konkretną ocenę z Firebase
         await dbRef.child(itemId).child('seasons').child(seasonNum).child('ratings').child(user).remove();
         
-        // 2. Znajdujemy aktualne dane tego filmu w naszej globalnej tablicy 'data'[cite: 1, 3]
-        const updatedItem = data.find(i => i.id === itemId);
-        
-        // 3. Odświeżamy okno sezonów nowymi danymi
-        if (updatedItem) {
-            showSeasonsModal(updatedItem);
+        const snap = await dbRef.child(itemId).once('value');
+        if (snap.exists()) {
+            showSeasonsModal({ id: itemId, ...snap.val() });
         }
         
         showNotification(`Usunięto ocenę użytkownika ${user}`, "success");
     } catch (err) {
         console.error("Błąd usuwania oceny sezonu:", err);
     }
+}
+
+async function deleteSeasonRecord(itemId, seasonNum) {
+    try {
+        await dbRef.child(itemId).child('seasons').child(seasonNum).remove();
+        
+        const snap = await dbRef.child(itemId).once('value');
+        if (snap.exists()) {
+            showSeasonsModal({ id: itemId, ...snap.val() });
+        }
+        
+        showNotification(`Usunięto sezon ${seasonNum}`, "success");
+    } catch (err) { console.error(err); }
 }

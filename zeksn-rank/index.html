@@ -114,19 +114,29 @@
             </div>
 
             <div id="stepRating" class="panel-step hidden">
-                <label for="ratingInput">Twoja ocena</label>
+                <label for="ratingInput">Ocena ogólna (do rankingu)</label>
                 <div class="rating-controls">
                     <input type="number" id="ratingInput" step="0.1" min="0" max="10" placeholder="0-10">
                     <span class="rating-divider">lub</span>
                     <select id="ratingSelect"></select>
                 </div>
-                
-                <!-- TUTAJ WRZUCAMY NOTATKĘ - elegancko pod oceną -->
-                <div class="modal-input-group" style="margin-top: 15px; margin-bottom: 15px;">
-                    <input type="text" id="noteInput" placeholder="notatka (opcjonalnie)..." class="form-input" style="width: 100%; box-sizing: border-box;">
+
+                <div id="seasonToggle" style="margin-top: 20px; cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">
+                    + Dodaj oceny sezonów (opcjonalnie)
                 </div>
-                
-                <button id="saveBtn" class="btn-glow">Zapisz ocenę</button>
+
+                <div id="seasonsContainer" class="hidden" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <div id="seasonsList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="season-row" style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" class="form-input season-num-input" placeholder="Nr sezonu" style="width: 90px; text-align: center;">
+                            <input type="number" class="form-input season-rating-input" step="0.1" min="0" max="10" placeholder="Ocena sezonu" style="flex: 1; text-align: center;">
+                        </div>
+                    </div>
+                    
+                    <button id="addAnotherSeasonBtn" style="background: none; border: 1px dashed rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: inherit; transition: all 0.2s; margin-top: 5px;">+ Dodaj kolejny sezon</button>
+                </div>
+
+                <button id="saveBtn" class="btn-glow" style="margin-top: 25px;">Zapisz wszystko</button>
             </div>
         </section>
 

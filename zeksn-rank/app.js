@@ -42,6 +42,8 @@ let users = [];
 let restreamSites = [];
 let currentUser = "";
 let isAdmin = false;
+let isLoggedIn = false;
+let loggedGuestName = "";
 
 // ----------------------------
 // INICJALIZACJA APLIKACJI
@@ -67,33 +69,45 @@ function initApp() {
 }
 
 // ----------------------------
-// AUTORYZACJA (ADMIN)
+// AUTORYZACJA (ADMIN & GOŚĆ)
 // ----------------------------
 function setupAuth() {
     const auth = firebase.auth();
+    const googleProvider = new firebase.auth.GoogleAuthProvider(); // Dostawca Google
 
     const authUI = `
-        <div class="admin-login-trigger" id="loginTrigger" title="Logowanie">
+        <div class="admin-login-trigger" id="loginTrigger" title="Logowanie" style="display: block;">
             <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M34.2824 14.3746V16.6546H31.9874V18.9496H29.7074V21.2296H27.4274V25.8046H29.7074V28.0846H31.9874V30.3796H34.2824V32.6596H36.5624V25.8046H45.7124V21.2296H36.5624V14.3746H34.2824ZM31.9874 37.2346H34.2824V41.8096H31.9874V37.2346ZM31.9874 2.94458H34.2824V9.79958H31.9874V2.94458ZM22.8524 46.3696V44.0896H31.9874V41.8096H22.8524V12.0946H20.5724V46.3696H22.8524ZM13.7024 46.3696H20.5724V48.6646H13.7024V46.3696ZM15.9974 25.8046H18.2774V30.3796H15.9974V25.8046ZM15.9974 9.79958H20.5724V12.0946H15.9974V9.79958ZM9.14238 44.0896H13.7024V46.3696H9.14238V44.0896ZM11.4224 7.51958H15.9974V9.79958H11.4224V7.51958ZM4.56738 41.8096H9.14238V44.0896H4.56738V41.8096ZM6.84738 5.23958H11.4224V7.51958H6.84738V5.23958Z" fill="currentColor"/>
                 <path d="M4.5676 0.664551V2.94455H2.2876V41.8095H4.5676V5.23955H6.8476V2.94455H31.9876V0.664551H4.5676Z" fill="currentColor"/>
             </svg>
         </div>
         
-        <div class="admin-logout-trigger" id="logoutBtn" title="Wyloguj">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_47_8)">
-<path d="M25.1449 9.14V13.71H19.0449V16.76H25.1449V21.33H26.6649V19.81H28.1949V18.29H29.7149V16.76H31.2349V13.71H29.7149V12.19H28.1949V10.67H26.6649V9.14H25.1449ZM20.5749 21.33H22.0949V27.43H20.5749V21.33ZM20.5749 1.52H22.0949V9.14H20.5749V1.52ZM14.4749 30.48V28.95H20.5749V27.43H14.4749V7.62H12.9549V30.48H14.4749ZM8.38491 30.48H12.9549V32H8.38491V30.48ZM9.90491 16.76H11.4249V19.81H9.90491V16.76ZM9.90491 6.1H12.9549V7.62H9.90491V6.1ZM5.33491 28.95H8.38491V30.48H5.33491V28.95ZM6.85491 4.57H9.90491V6.1H6.85491V4.57ZM2.28491 27.43H5.33491V28.95H2.28491V27.43ZM3.81491 3.05H6.85491V4.57H3.81491V3.05Z" fill="#B3B3B3"/><path d="M2.28489 0V1.52H0.764893V27.43H2.28489V3.05H3.81489V1.52H20.5749V0H2.28489Z" fill="#B3B3B3"/></g><defs><clipPath id="clip0_47_8"><rect width="32" height="32" fill="white"/></clipPath></defs>
-</svg>
-    </div>
+        <div class="admin-logout-trigger" id="logoutBtn" title="Wyloguj" style="display: none;">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_47_8)"><path d="M25.1449 9.14V13.71H19.0449V16.76H25.1449V21.33H26.6649V19.81H28.1949V18.29H29.7149V16.76H31.2349V13.71H29.7149V12.19H28.1949V10.67H26.6649V9.14H25.1449ZM20.5749 21.33H22.0949V27.43H20.5749V21.33ZM20.5749 1.52H22.0949V9.14H20.5749V1.52ZM14.4749 30.48V28.95H20.5749V27.43H14.4749V7.62H12.9549V30.48H14.4749ZM8.38491 30.48H12.9549V32H8.38491V30.48ZM9.90491 16.76H11.4249V19.81H9.90491V16.76ZM9.90491 6.1H12.9549V7.62H9.90491V6.1ZM5.33491 28.95H8.38491V30.48H5.33491V28.95ZM6.85491 4.57H9.90491V6.1H6.85491V4.57ZM2.28491 27.43H5.33491V28.95H2.28491V27.43ZM3.81491 3.05H6.85491V4.57H3.81491V3.05Z" fill="#B3B3B3"/><path d="M2.28489 0V1.52H0.764893V27.43H2.28489V3.05H3.81489V1.52H20.5749V0H2.28489Z" fill="#B3B3B3"/></g><defs><clipPath id="clip0_47_8"><rect width="32" height="32" fill="white"/></clipPath></defs>
+            </svg>
+        </div>
         
         <div id="loginModal" class="modal-overlay hidden">
-            <div class="modal-content login-content">
-                <div class="modal-header"><h3>Admin Login</h3><button class="modal-close-login">&times;</button></div>
-                <div class="modal-body">
-                    <input type="email" id="adminEmail" placeholder="Email" class="form-input">
+            <div class="modal-content login-content" style="max-width: 380px;">
+                <div class="modal-header"><h3>Zaloguj się</h3><button class="modal-close-login">&times;</button></div>
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+                    
+                    <button id="doGoogleLoginBtn" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; background: #fff; color: #1a1a1a; border: none; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                        Logowanie Google
+                    </button>
+
+                    <div style="display: flex; align-items: center; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin: 5px 0;">
+                        <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                        <span style="padding: 0 10px; text-transform: uppercase; letter-spacing: 1px;">lub jako admin</span>
+                        <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                    </div>
+
+                    <input type="email" id="adminEmail" placeholder="Email admina" class="form-input">
                     <input type="password" id="adminPass" placeholder="Hasło" class="form-input">
-                    <button id="doLoginBtn" class="btn-confirm full-width">Zaloguj</button>
+                    <button id="doLoginBtn" class="btn-confirm full-width">Zaloguj klasycznie</button>
                     <p id="loginError" class="error-msg"></p>
                 </div>
             </div>
@@ -105,41 +119,97 @@ function setupAuth() {
     const loginModal = document.getElementById('loginModal');
     const closeLogin = document.querySelector('.modal-close-login');
     const doLoginBtn = document.getElementById('doLoginBtn');
+    const doGoogleLoginBtn = document.getElementById('doGoogleLoginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
 
     if (loginTrigger) loginTrigger.addEventListener('click', () => loginModal.classList.remove('hidden'));
     if (closeLogin) closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
 
+    // Klasyczne logowanie (Admin)
     if (doLoginBtn) doLoginBtn.addEventListener('click', () => {
         const email = document.getElementById('adminEmail').value;
         const pass = document.getElementById('adminPass').value;
-
         auth.signInWithEmailAndPassword(email, pass)
             .then(() => {
                 loginModal.classList.add('hidden');
-                showNotification('Zalogowano jako Admin', 'success');
                 document.getElementById('adminEmail').value = '';
                 document.getElementById('adminPass').value = '';
             })
+            .catch(error => document.getElementById('loginError').textContent = "Błąd: " + error.message);
+    });
+
+    // NOWOŚĆ: Logowanie Google (Gość) - Wersja z Popupem
+    if (doGoogleLoginBtn) doGoogleLoginBtn.addEventListener('click', () => {
+        auth.signInWithPopup(googleProvider)
+            .then(() => {
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal) loginModal.classList.add('hidden');
+            })
             .catch(error => {
-                const errElem = document.getElementById('loginError');
-                if (errElem) errElem.textContent = "Błąd: " + error.message;
+                const errEl = document.getElementById('loginError');
+                if (errEl) errEl.textContent = "Błąd Google: " + error.message;
             });
     });
 
-    if (logoutBtn) logoutBtn.addEventListener('click', () => {
-        auth.signOut().then(() => showNotification('Wylogowano', 'info'));
-    });
+    if (logoutBtn) logoutBtn.addEventListener('click', () => auth.signOut().then(() => showNotification('Wylogowano', 'info')));
 
+    // Reakcja na zmianę stanu logowania
     auth.onAuthStateChanged(user => {
         if (user) {
-            isAdmin = true;
-            document.body.classList.add('is-admin');
-            console.log('Tryb: ADMIN');
+            isLoggedIn = true;
+            document.getElementById('loginTrigger').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+
+            const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+
+            if (!isGoogleUser) {
+                // TRYB ADMINA (Odblokowany)
+                isAdmin = true;
+                loggedGuestName = "";
+                document.body.classList.add('is-admin');
+                showNotification('Zalogowano jako Admin', 'success');
+                
+                // Zdejmujemy ewentualną blokadę z dropdowna
+                const userSelect = document.getElementById("userSelect");
+                if (userSelect) userSelect.disabled = false;
+            } else {
+                // TRYB GOŚCIA (Zablokowany)
+                isAdmin = false;
+                document.body.classList.remove('is-admin');
+                
+                loggedGuestName = user.displayName.split(' ')[0].toLowerCase();
+                showNotification(`Witaj, ${loggedGuestName}!`, 'success');
+                usersRef.child(loggedGuestName).set(true);
+
+                // Automatyczne ustawienie i ZABLOKOWANIE wyboru użytkownika
+                setTimeout(() => {
+                    const userSelect = document.getElementById("userSelect");
+                    if (userSelect) {
+                        // Upewniamy się, że jego imię jest na liście, jak nie to dodajemy
+                        if (!Array.from(userSelect.options).some(opt => opt.value === loggedGuestName)) {
+                            userSelect.add(new Option(loggedGuestName, loggedGuestName));
+                        }
+                        userSelect.value = loggedGuestName;
+                        userSelect.disabled = true; // <--- MAGIA: Blokuje klikanie w listę!
+                        userSelect.style.opacity = "0.7"; 
+                        handleUserSelect(); 
+                    }
+                }, 1000);
+            }
         } else {
+            // TRYB NIEZALOGOWANY
+            isLoggedIn = false;
             isAdmin = false;
+            loggedGuestName = "";
             document.body.classList.remove('is-admin');
-            console.log('Tryb: GOŚĆ');
+            document.getElementById('loginTrigger').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            const userSelect = document.getElementById("userSelect");
+            if (userSelect) {
+                userSelect.disabled = false;
+                userSelect.style.opacity = "1";
+            }
         }
     });
 }
@@ -181,21 +251,62 @@ function setupIndexEventListeners() {
     const saveBtn = document.getElementById("saveBtn");
     const movieTitle = document.getElementById("movieTitle");
     const ratingInput = document.getElementById("ratingInput");
-    const ratingSelect = document.getElementById("ratingSelect");
 
+    // 1. PRZYWRÓCONE AKCJE GŁÓWNYCH PRZYCISKÓW (tego brakowało!)
     if (userSelect) userSelect.addEventListener("change", handleUserSelect);
     if (nextBtn) nextBtn.addEventListener("click", handleNextStep);
     if (saveBtn) saveBtn.addEventListener("click", handleSaveRating);
 
-    if (movieTitle) movieTitle.addEventListener("keypress", (e) => { if (e.key === "Enter") handleNextStep(); });
-    if (ratingInput) ratingInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSaveRating(); });
-
-    if (ratingSelect) {
-        ratingSelect.addEventListener("change", (e) => {
-            if (e.target.value && ratingInput) ratingInput.value = e.target.value;
+    // Enter przechodzi dalej z tytułu
+    if (movieTitle) {
+        movieTitle.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleNextStep();
         });
     }
-}
+
+    // Enter zapisuje ocenę
+    if (ratingInput) {
+        ratingInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleSaveRating();
+        });
+    }
+
+    // 2. NOWOŚĆ: Obsługa rozwijania i dodawania kolejnych sezonów
+    const seasonToggle = document.getElementById("seasonToggle");
+    const seasonsContainer = document.getElementById("seasonsContainer");
+    const addAnotherSeasonBtn = document.getElementById("addAnotherSeasonBtn");
+    const seasonsList = document.getElementById("seasonsList");
+
+    if (seasonToggle && seasonsContainer) {
+        seasonToggle.addEventListener("click", () => {
+            seasonsContainer.classList.toggle("hidden");
+            seasonToggle.textContent = seasonsContainer.classList.contains("hidden") 
+                ? "+ Dodaj oceny sezonów (opcjonalnie)" 
+                : "- Ukryj opcje sezonów";
+        });
+    }
+
+    if (addAnotherSeasonBtn && seasonsList) {
+        addAnotherSeasonBtn.addEventListener("click", () => {
+            const newRow = document.createElement("div");
+            newRow.className = "season-row";
+            newRow.style.cssText = "display: flex; gap: 10px; align-items: center;";
+            newRow.innerHTML = `
+                <input type="number" class="form-input season-num-input" placeholder="Nr sezonu" style="width: 90px; text-align: center;">
+                <input type="number" class="form-input season-rating-input" step="0.1" min="0" max="10" placeholder="Ocena sezonu" style="flex: 1; text-align: center;">
+                <button class="remove-season-btn" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem; padding: 0 5px;" title="Usuń">✕</button>
+            `;
+            
+            // Obsługa czerwonego krzyżyka do usuwania rzędu
+            newRow.querySelector(".remove-season-btn").addEventListener("click", (e) => {
+                e.target.parentElement.remove();
+            });
+
+            seasonsList.appendChild(newRow);
+        });
+    }
+} // <--- Przywrócona zamykająca klamra!
+
 
 function populateRatingSelect() {
     const ratingSelect = document.getElementById("ratingSelect");
@@ -256,8 +367,9 @@ function handleNextStep() {
 }
 
 async function handleSaveRating() {
-    if (!isAdmin) {
-        showNotification("🔒 Log in", "error");
+    // Od teraz blokuje tylko osoby kompletnie wylogowane
+    if (!isLoggedIn && !isAdmin) {
+        showNotification("🔒 Zaloguj się przez Google, aby dodawać oceny", "error");
         return;
     }
 
@@ -265,18 +377,36 @@ async function handleSaveRating() {
     const movieTitle = document.getElementById("movieTitle");
     const ratingInput = document.getElementById("ratingInput");
     const ratingSelect = document.getElementById("ratingSelect");
-    const noteInput = document.getElementById("noteInput"); // Złapanie notatki
+    const noteInput = document.getElementById("noteInput");
 
     const user = userSelect.value;
     const film = movieTitle.value.trim();
     let ratingText = ratingInput.value.trim() || ratingSelect.value;
     ratingText = ratingText.replace(',', '.');
-    const rating = parseFloat(ratingText);
-    const note = noteInput ? noteInput.value.trim() : ""; // Odczyt notatki
+    const mainRating = parseFloat(ratingText);
+    const note = noteInput ? noteInput.value.trim() : "";
 
     if (!user || !film) return;
-    if (isNaN(rating) || rating < 0 || rating > 10) {
-        showNotification("Podaj poprawną ocenę (0-10)", 'error');
+
+    // 1. Zbieramy dane o sezonach ZANIM sprawdzimy ocenę główną
+    const seasonRows = document.querySelectorAll(".season-row");
+    let seasonsToSave = [];
+    seasonRows.forEach(row => {
+        const numInput = row.querySelector(".season-num-input").value;
+        const sRatingRaw = row.querySelector(".season-rating-input").value;
+        if (numInput && sRatingRaw) {
+            const sRating = parseFloat(sRatingRaw.replace(',', '.'));
+            if (!isNaN(sRating) && sRating >= 0 && sRating <= 10) {
+                seasonsToSave.push({ num: numInput, rating: sRating });
+            }
+        }
+    });
+
+    const hasMainRating = !isNaN(mainRating) && mainRating >= 0 && mainRating <= 10;
+
+    // Możesz teraz dodać TYLKO sezon bez oceny głównej!
+    if (!hasMainRating && seasonsToSave.length === 0) {
+        showNotification("Podaj ocenę główną LUB ocenę sezonu!", 'error');
         return;
     }
 
@@ -299,50 +429,88 @@ async function handleSaveRating() {
             });
         }
 
-        if (existingKey && existingData) {
-            const userRatings = existingData.ratings || {};
-            userRatings[user] = rating.toString();
-            
-            // AKTUALIZACJA NOTATEK W ISTNIEJĄCYM FILMIE
-            const userNotes = existingData.notes || {};
-            if (note) userNotes[user] = note; 
-            else delete userNotes[user];
+        const finalKey = existingKey || normalizedFilm.replace(/[^a-z0-9]/g, '_');
 
-            const arr = Object.values(userRatings).map(r => parseFloat(r));
-            const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+        // 2. Zapis Oceny Głównej (tylko jeśli ją wpisano)
+        if (hasMainRating) {
+            if (existingKey && existingData) {
+                const userRatings = existingData.ratings || {};
+                userRatings[user] = mainRating.toString();
+                
+                const userNotes = existingData.notes || {};
+                if (note) userNotes[user] = note; 
+                else delete userNotes[user];
 
-            await dbRef.child(existingKey).update({
-                ratings: userRatings,
-                notes: userNotes,
-                avgRating: avg.toFixed(1),
-                film: existingData.film
-            });
-            showNotification(`Zaktualizowano ocenę: ${rating}`, 'success');
-        } else {
-            const key = normalizedFilm.replace(/[^a-z0-9]/g, '_');
-            const userRatings = { [user]: rating.toString() };
-            const userNotes = note ? { [user]: note } : {}; // DODANIE NOTATKI DO NOWEGO FILMU
-            
-            await dbRef.child(key).set({
+                const arr = Object.values(userRatings).map(r => parseFloat(r));
+                const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+
+                await dbRef.child(existingKey).update({
+                    ratings: userRatings,
+                    notes: userNotes,
+                    avgRating: avg.toFixed(1),
+                    film: existingData.film
+                });
+                showNotification(`Zaktualizowano ocenę ogólną: ${mainRating}`, 'success');
+            } else {
+                const userRatings = { [user]: mainRating.toString() };
+                const userNotes = note ? { [user]: note } : {};
+                
+                await dbRef.child(finalKey).set({
+                    film: film,
+                    ratings: userRatings,
+                    notes: userNotes,
+                    avgRating: mainRating.toFixed(1),
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+                showNotification(`Dodano do bazy: ${film}`, 'success');
+            }
+        } else if (!existingKey) {
+            // Nowy serial, ale dodany BEZ oceny głównej (tylko sezony)
+            await dbRef.child(finalKey).set({
                 film: film,
-                ratings: userRatings,
-                notes: userNotes,
-                avgRating: rating.toFixed(1),
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             });
-            showNotification(`Dodano: ${film}`, 'success');
         }
+
+        // 3. PANCERNY Zapis Sezonów (Naprawiony błąd asynchroniczności)
+        let addedSeasonsCount = 0;
+        for (const s of seasonsToSave) {
+            await dbRef.child(finalKey).child('seasons').child(s.num).child('ratings').child(user).set(s.rating.toString());
+            addedSeasonsCount++;
+        }
+
+        if (addedSeasonsCount > 0) {
+            showNotification(`Zapisano ${addedSeasonsCount} sezon(y)!`, 'success');
+        }
+
+        // 4. Czyszczenie Formularza
+        document.getElementById("stepRating").classList.add("hidden");
+        const sContainer = document.getElementById("seasonsContainer");
+        if (sContainer) sContainer.classList.add("hidden");
+        
+        const sToggle = document.getElementById("seasonToggle");
+        if (sToggle) sToggle.textContent = "+ Dodaj oceny sezonów (opcjonalnie)";
+        
+        movieTitle.value = "";
+        ratingInput.value = "";
+        ratingSelect.selectedIndex = 0;
+        if (noteInput) noteInput.value = "";
+        
+        const sList = document.getElementById("seasonsList");
+        if (sList) {
+            sList.innerHTML = `
+                <div class="season-row" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" class="form-input season-num-input" placeholder="Nr sezonu" style="width: 90px; text-align: center;">
+                    <input type="number" class="form-input season-rating-input" step="0.1" min="0" max="10" placeholder="Ocena sezonu" style="flex: 1; text-align: center;">
+                </div>
+            `;
+        }
+        movieTitle.focus();
+
     } catch (err) {
         console.error(err);
         showNotification("Błąd zapisu", 'error');
     }
-
-    document.getElementById("stepRating").classList.add("hidden");
-    movieTitle.value = "";
-    ratingInput.value = "";
-    ratingSelect.selectedIndex = 0;
-    if (noteInput) noteInput.value = ""; // Czyszczenie pola
-    movieTitle.focus();
 }
 
 // ============================================================

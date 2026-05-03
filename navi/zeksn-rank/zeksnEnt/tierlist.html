@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Tier List</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="tierlist.css">
+</head>
+<body>
+    
+
+    
+    <canvas id="fluid-canvas"></canvas>
+
+    <div class="nav-top">
+        <a href="index.html" class="back-link">🏠 Dashboard</a>
+        <h1>TIER LIST MAKER</h1>
+        <button id="saveScreenBtn" class="save-btn">📸 Zapisz</button>
+    </div>
+
+    <div class="tier-container">
+        
+        <div class="tiers-area">
+            
+            <div class="tier-row">
+                <div class="tier-label s-tier">S</div>
+                <div class="tier-content drop-zone" data-tier="S"></div>
+            </div>
+
+            <div class="tier-row">
+                <div class="tier-label a-tier">A</div>
+                <div class="tier-content drop-zone" data-tier="A"></div>
+            </div>
+
+            <div class="tier-row">
+                <div class="tier-label b-tier">B</div>
+                <div class="tier-content drop-zone" data-tier="B"></div>
+            </div>
+
+            <div class="tier-row">
+                <div class="tier-label c-tier">C</div>
+                <div class="tier-content drop-zone" data-tier="C"></div>
+            </div>
+
+             <div class="tier-row">
+                <div class="tier-label d-tier">D</div>
+                <div class="tier-content drop-zone" data-tier="D"></div>
+            </div>
+
+        </div>
+
+        <div class="movies-bank-wrapper">
+            <h3>🎞️ BANK FILMÓW (Przeciągnij je!)</h3>
+            <div id="moviesBank" class="drop-zone bank-zone">
+                <div class="loading-text">Ładowanie filmów z bazy...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script src="fluid.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/tierlist.js"></script>
+</body>
+</html>

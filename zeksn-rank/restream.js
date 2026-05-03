@@ -338,9 +338,12 @@ class RestreamManager {
     
     addItem(type) {
         if (!this.isAdmin()) {
-            alert("🔒 Zaloguj się jako admin!");
-            return;
+        // ZAMIANA: alert na showNotification
+        if (window.showNotification) {
+            window.showNotification("🔒 Zaloguj się jako admin!", "error");
         }
+        return;
+    }
 
         const list = this.getCurrentList();
         

@@ -1,0 +1,382 @@
+/* ===== RANKING & STATS SPECIFIC STYLES ===== */
+
+/* Statystyki */
+.stats-container { 
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px; margin-bottom: 25px; pointer-events: auto;
+}
+.stat {
+    background: var(--surface); padding: 20px; border-radius: 2px;
+    text-align: center; border: 1px solid var(--border);
+    box-shadow: var(--glow); transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary); }
+.stat:hover { box-shadow: var(--glow-hover); transform: translateY(-3px); }
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px; }
+.stat-label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 400; text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* --- NAGŁÓWEK TABELI (Możesz go ukryć, bo na screenie go nie ma, lub dostosować) --- */
+.ranking-header-row {
+    display: none; /* W takich układach listowych zazwyczaj ukrywa się nagłówki kolumn */
+}
+
+/* --- KAFELEK FILMU (Wypełnia ekran, zachowując proporcje) --- */
+/* --- KAFELEK FILMU --- */
+.ranking-tile {
+    display: grid;
+    grid-template-columns: 80px 130px 1fr 140px; 
+    gap: 40px; 
+    
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    padding: 30px 0; 
+    
+    /* KLUCZOWA ZMIANA: Zwężamy cały kafelek do ok. 950px */
+    width: 100%;
+    max-width: 1550px; 
+    
+    transition: background 0.2s ease;
+}
+
+.ranking-tile:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- 1. POZYCJA W RANKINGU --- */
+.col-rank { 
+    font-size: 56px; /* Powiększone z 48px */
+    font-weight: 700; 
+    color: #fff; 
+    text-align: center; 
+}
+.ranking-tile:nth-child(1) .col-rank {
+    color: var(--primary);
+    text-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* --- 2. PLAKAT FILMU (Większy, wyraźniejszy) --- */
+/* --- 2. PLAKAT FILMU (Wersja Premium / Cinematic UI) --- */
+.col-poster {
+    width: 130px;
+    height: 195px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+
+    border: 1px solid rgba(150, 150, 150, 0.2);
+    background: var(--surface);
+
+    /* głębia */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    /* glass efekt */
+    backdrop-filter: blur(6px);
+
+    transition: 
+        transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+        box-shadow 0.4s ease, 
+        border-color 0.4s ease;
+
+    /* animacja wejścia */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    animation: fadeInPoster 0.6s ease forwards;
+}
+
+@keyframes fadeInPoster {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.col-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    opacity: 1;
+
+    /* bardziej cinematic kolory */
+    filter: brightness(0.95) contrast(1.05) saturate(1.05);
+
+    transition: transform 0.6s ease, filter 0.4s ease;
+}
+
+/* gradient overlay (filmowy klimat) */
+.col-poster::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.65) 0%,
+        rgba(0,0,0,0.25) 40%,
+        rgba(0,0,0,0) 100%
+    );
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* efekt światła (shine) */
+.col-poster::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.15),
+        transparent
+    );
+    transform: skewX(-20deg);
+}
+
+/* --- HOVER --- */
+.ranking-tile:hover .col-poster {
+    transform: translateY(-10px) scale(1.04);
+    border-color: var(--primary);
+
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.65),
+        0 0 30px rgba(255, 255, 255, 0.05),
+        0 0 25px var(--primary-glow);
+}
+
+.ranking-tile:hover .col-poster img {
+    transform: scale(1.08);
+    filter: brightness(1) contrast(1.1) saturate(1.1);
+}
+
+.ranking-tile:hover .col-poster::after {
+    opacity: 0.6;
+}
+
+.ranking-tile:hover .col-poster::before {
+    animation: shine 0.9s ease;
+}
+
+@keyframes shine {
+    100% {
+        left: 125%;
+    }
+}
+
+/* --- 3. ŚRODKOWA KOLUMNA --- */
+.col-team {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    gap: 8px;
+}
+
+.movie-header {
+    display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap;
+}
+
+.team-name {
+    font-size: 40px; /* Powiększone z 26px */
+    font-weight: 700; color: #fff; margin: 0; padding: 0;
+}
+
+.movie-year {
+    font-size: 20px; /* Powiększone z 18px */
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.movie-director {
+    font-size: 16px; /* Powiększone z 15px */
+}
+
+/* --- NOTATKI UŻYTKOWNIKÓW (Zamiast długich opisów) --- */
+.movie-notes-container {
+    display: flex;
+    flex-wrap: wrap; /* Pozwala na zawijanie do nowej linii, jeśli jest dużo notatek */
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.movie-note {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.05); /* Lekko przezroczyste, szklane tło */
+    padding: 6px 12px;
+    border-radius: 6px;
+    
+    /* Lewa krawędź notatki podświetlona na kolor Twojego motywu */
+    border-left: 3px solid var(--primary); 
+    
+    /* Subtelny glow z Twojego motywu */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+}
+
+.note-user {
+    font-weight: 700;
+    color: var(--primary); /* Imię użytkownika w kolorze motywu */
+    margin-right: 6px;
+    letter-spacing: 0.5px;
+}
+
+/* --- 4. OCENA --- */
+.col-pf {
+    display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+}
+
+.rating-number {
+    font-size: 64px; /* Przywrócone solidne 64px! */
+    font-weight: 700; line-height: 1; color: #fff; 
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8); 
+}
+
+/* --- 4. OCENA --- */
+.col-pf {
+    display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+}
+
+.rating-number {
+    font-size: 54px; /* Zwiększone z 42px */
+    font-weight: 700; line-height: 1; color: #fff; 
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8); 
+}
+
+/* --- IKONKA FILMWEB --- */
+.filmweb-icon-wrapper {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; /* Zwiększone z 26px */
+    height: 30px;
+    background: rgba(255, 255, 255, 0.08); 
+    border-radius: 6px;
+    margin-left: 8px; flex-shrink: 0;
+    cursor: pointer !important;
+    transition: transform 0.2s ease, filter 0.2s ease, background 0.2s ease;
+}
+.filmweb-icon-wrapper:hover {
+    transform: scale(1.08) rotate(10deg); 
+    filter: drop-shadow(0 0 8px rgba(255, 121, 0, 0.6)); 
+    background: rgba(255, 255, 255, 0.12); 
+}
+.fw-icon { width: 16px; height: 16px; opacity: 0.85; }
+
+/* Nagłówek filmu trzymający Tytuł, Rok i Ikonę w jednej linii */
+.movie-header {
+    display: flex;
+    align-items: center; /* Pionowe wyrównanie tytułu i ikony */
+    gap: 15px;
+    flex-wrap: wrap; /* Pozwala zawijać na mniejszych ekranach */
+}
+
+/* ============================================================
+   PASEK FILTRÓW (PILL BUTTONS)
+   ============================================================ */
+/* ============================================================
+   PASEK FILTRÓW (KOMPAKTOWY)
+   ============================================================ */
+.filters-bar {
+    display: flex; gap: 10px;
+    margin-bottom: 15px; /* Mniejszy odstęp pod paskiem */
+    padding: 10px 8vw;
+    pointer-events: auto; z-index: 20; position: relative;
+    overflow-x: auto; align-items: center;
+}
+
+.filters-bar::-webkit-scrollbar { display: none; }
+
+.filter-pill {
+    background: rgba(40, 40, 40, 0.9); 
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50px; 
+    color: #fff;
+    padding: 8px 18px; /* Mniejsze i zgrabniejsze przyciski */
+    font-size: 0.85rem; /* Mniejszy font */
+    font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+}
+
+.filter-pill:hover {
+    background: rgba(60, 60, 60, 0.95);
+    transform: translateY(-2px);
+}
+
+/* AKTYWNY PRZYCISK (Dopasowany do motywu + NAPRAWA DLA BIAŁEGO KOLORU) */
+.filter-pill.active {
+    background: var(--primary); 
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px var(--primary-glow);
+    font-weight: 600;
+    /* Sprytny trik: zamiast białego koloru, bierzemy kolor tła.
+       Na białym guziku tekst będzie czarny, a na kolorowym ciemny (super czytelne!) */
+    color: var(--background); 
+}
+
+/* AKTYWNY PRZYCISK SORTOWANIA */
+.filter-pill.active-sort {
+    border-color: var(--primary);
+    color: var(--primary); 
+    background: var(--primary-glow); 
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* Hover dla wszystkich przycisków */
+.filter-pill:hover {
+    background: rgba(60, 60, 60, 0.95);
+    transform: translateY(-2px); /* Teraz może bezpiecznie podskakiwać */
+}
+
+.filter-pill .arrow {
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: 4px;
+}
+
+/* Poprawka dla inputów w modalu edycji */
+.rating-item .form-input {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    font-weight: 700;
+    margin-right: 5px;
+}
+
+.rating-item .form-input:focus {
+    border-bottom-color: var(--primary) !important;
+}
+
+/* Styl dla małych przycisków akcji w modalu */
+.rating-item .btn-edit-rating, 
+.rating-item .btn-delete-rating {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    min-width: 35px;
+}
+
+/* Usunięcie strzałek w input type number dla estetyki */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* --- LISTA ROZWIJANA UŻYTKOWNIKÓW --- */
+/* --- LISTA ROZWIJANA UŻYTKOWNIKÓW --- */
+select.user-select-pill {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    /* KLUCZOWE: Blokada rozciąganania się na cały ekran! */
+    width: auto !important; 
+    min-width: 180px;
+    max-width: 250px;
+    
+    padding-right: 32px !important; 
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: 92%;
+    background-position-y: 50%;
+    background-size: 18px;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
+}

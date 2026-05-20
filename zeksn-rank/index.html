@@ -9,6 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking Filmów</title>
+    
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="xd.ico">
 </head>
@@ -71,6 +72,16 @@
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                 </a>
+
+                <a href="entertainment/index.html" class="glass-btn glass-btn--dashboard" title="Dashboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </a>
         
                 <div class="settings-container">
     <button class="glass-btn btn-settings" id="settingsToggle" title="Ustawienia">
@@ -94,8 +105,31 @@
 </div>
         </header>
 
+        <div id="intro-screen" class="intro-screen">
+            <h1 class="intro-title">ranking <span class="highlight"> zk</span></h1>
+            <p class="intro-subtitle">Aplikacja webowa stworzona do wspólnego oceniania filmów i seriali</p>
+            
+            <div class="intro-actions">
+                <a href="ranking.html" class="intro-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                    Zobacz Ranking
+                </a>
+                <a href="restream.html" class="intro-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Przejdź do Restream
+                </a>
+                <a href="entertainment/index.html" class="intro-btn intro-btn--dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Dashboard
+                </a>
+            </div>
 
-        <section id="panel">
+            <div class="intro-prompt">
+                Kliknij gdziekolwiek, aby dodać film
+            </div>
+        </div>
+
+        <section id="panel" class="panel-hidden">
             <div class="panel-step">
                 <label for="userSelect">Użytkownik</label>
                 <select id="userSelect">
@@ -121,6 +155,14 @@
                     <select id="ratingSelect"></select>
                 </div>
 
+                <div id="noteToggle" style="margin-top: 20px; cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">
+                    + Dodaj notatkę (opcjonalnie)
+                </div>
+
+                <div id="noteContainer" class="hidden" style="margin-top: 15px;">
+                    <label for="noteInput">Notatka</label>
+                    <input type="text" id="noteInput" placeholder="Krótka recenzja lub wrażenia..." style="font-size: 1.1rem;">
+                </div>
                 <div id="seasonToggle" style="margin-top: 20px; cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">
                     + Dodaj oceny sezonów (opcjonalnie)
                 </div>

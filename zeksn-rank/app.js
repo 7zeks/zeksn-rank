@@ -44,6 +44,7 @@ let currentUser = "";
 let isAdmin = false;
 let isLoggedIn = false;
 let loggedGuestName = "";
+const fallbackUsers = ["zeku", "pierozek"];
 
 // ----------------------------
 // INICJALIZACJA APLIKACJI
@@ -63,6 +64,7 @@ function initApp() {
         setupAddUserButton();
         setupIndexEventListeners();
         populateRatingSelect();
+        setupIntroScreen(); // <--- 
     }
 
     setupUsersListener();
@@ -271,6 +273,18 @@ function setupIndexEventListeners() {
         });
     }
 
+    const noteToggle = document.getElementById("noteToggle");
+    const noteContainer = document.getElementById("noteContainer");
+
+    if (noteToggle && noteContainer) {
+        noteToggle.addEventListener("click", () => {
+            noteContainer.classList.toggle("hidden");
+            noteToggle.textContent = noteContainer.classList.contains("hidden")
+                ? "+ Dodaj notatkę (opcjonalnie)"
+                : "- Ukryj notatkę";
+        });
+    }
+
     // 2. NOWOŚĆ: Obsługa rozwijania i dodawania kolejnych sezonów
     const seasonToggle = document.getElementById("seasonToggle");
     const seasonsContainer = document.getElementById("seasonsContainer");
@@ -305,8 +319,32 @@ function setupIndexEventListeners() {
             seasonsList.appendChild(newRow);
         });
     }
-} // <--- Przywrócona zamykająca klamra!
+} 
 
+function setupIntroScreen() {
+    const intro = document.getElementById('intro-screen');
+    const panel = document.getElementById('panel');
+    
+    if (!intro || !panel) return;
+
+    const openPanel = () => {
+        intro.classList.add('hidden-intro');
+        panel.classList.remove('panel-hidden');
+
+        if (loggedGuestName) {
+            handleUserSelect();
+        }
+
+        setTimeout(() => {
+            intro.remove();
+        }, 900);
+    };
+
+    intro.addEventListener('click', (e) => {
+        if (e.target.closest('.intro-btn')) return;
+        openPanel();
+    });
+}
 
 function populateRatingSelect() {
     const ratingSelect = document.getElementById("ratingSelect");
@@ -511,6 +549,15 @@ async function handleSaveRating() {
         console.error(err);
         showNotification("Błąd zapisu", 'error');
     }
+
+    // 4. Czyszczenie Formularza
+        document.getElementById("stepRating").classList.add("hidden");
+        
+        // Dodaj te linie poniżej:
+        const nContainer = document.getElementById("noteContainer");
+        if (nContainer) nContainer.classList.add("hidden");
+        const nToggle = document.getElementById("noteToggle");
+        if (nToggle) nToggle.textContent = "+ Dodaj notatkę (opcjonalnie)";
 }
 
 // ============================================================
@@ -534,16 +581,24 @@ function updateUserSelect() {
     if (!userSelect) return;
 
     const current = userSelect.value;
+    const allUsers = [...new Set([...fallbackUsers, ...users])];
+
+    if (current && !allUsers.includes(current)) {
+        allUsers.push(current);
+    }
+
     userSelect.innerHTML = '<option value=""> wybierz użytkownika </option>';
 
-    users.forEach(user => {
+    allUsers.forEach(user => {
         const opt = document.createElement('option');
         opt.value = user;
         opt.textContent = user;
         userSelect.appendChild(opt);
     });
 
-    if (current && users.includes(current)) userSelect.value = current;
+    if (current && allUsers.includes(current)) {
+        userSelect.value = current;
+    }
 }
 
 function showAddUserModal() {
@@ -726,6 +781,7 @@ function setupTopBarSettings() {
 
     const updateBgState = () => {
         document.body.classList.toggle('static-mode', isStatic);
+        document.documentElement.classList.remove('static-bg-preload');
         if (bgIcon) {
             bgIcon.innerHTML = isStatic ? svgImage : svgSparkles;
         }
@@ -754,10 +810,7 @@ function showNotification(message, type = 'info') {
     document.body.appendChild(notif);
 
     setTimeout(() => {
-        if (notif.parentNode) {
-            notif.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notif.remove(), 300);
-        }
+        notif.remove();
     }, 3000);
 }
 
@@ -841,39 +894,6 @@ function loadSavedTheme() {
 document.addEventListener('DOMContentLoaded', initApp);
 
 // ==========================================
-// --- LOGIKA MOTYWU (JASNY/CIEMNY) ---
-// ==========================================
-const themeToggleBtn = document.getElementById('themeToggle');
-const htmlElement = document.documentElement;
-
-if (themeToggleBtn) {
-    const sunIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-    const moonIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-
-    const savedTheme = localStorage.getItem('theme');
-    
-    if (savedTheme === 'light') {
-        htmlElement.classList.add('dark'); // dark klasa u Ciebie to jasny motyw
-        themeToggleBtn.innerHTML = sunIcon;
-    } else {
-        htmlElement.classList.remove('dark');
-        themeToggleBtn.innerHTML = moonIcon;
-    }
-
-    themeToggleBtn.addEventListener('click', () => {
-        htmlElement.classList.toggle('dark');
-        
-        if (htmlElement.classList.contains('dark')) {
-            localStorage.setItem('theme', 'light');
-            themeToggleBtn.innerHTML = sunIcon;
-        } else {
-            localStorage.setItem('theme', 'dark');
-            themeToggleBtn.innerHTML = moonIcon;
-        }
-    });
-}
-
-// ==========================================
 // --- LOGIKA TŁA (ANIMOWANE / STATYCZNE) ---
 // ==========================================
 const bgToggleBtn = document.getElementById('bgToggle');
@@ -893,22 +913,33 @@ if (bgToggleBtn) {
             document.body.classList.add('static-mode');
         } else {
             // Pokazujemy z powrotem
-            if (fluidCanvas) fluidCanvas.style.opacity = '1';
+            if (fluidCanvas) {
+                fluidCanvas.hidden = false;
+                fluidCanvas.style.opacity = '1';
+            }
             if (ambientBg) ambientBg.style.opacity = '1';
             if (contentCanvas) contentCanvas.style.opacity = '1';
             document.body.classList.remove('static-mode');
+
+            if (window.__fluidBackgroundSkipped && !window.__fluidBackgroundLoading) {
+                window.__fluidBackgroundLoading = true;
+                const fluidScript = document.createElement('script');
+                fluidScript.src = 'fluid.js';
+                fluidScript.onload = () => {
+                    window.__fluidBackgroundSkipped = false;
+                    window.__fluidBackgroundLoading = false;
+                };
+                fluidScript.onerror = () => {
+                    window.__fluidBackgroundLoading = false;
+                };
+                document.body.appendChild(fluidScript);
+            }
         }
+        document.documentElement.classList.remove('static-bg-preload');
     };
 
     // Odpalamy przy wejściu na stronę
     updateBgState();
-
-    bgToggleBtn.addEventListener('click', () => {
-        isStatic = !isStatic;
-        localStorage.setItem('staticBg', isStatic);
-        updateBgState();
-        showNotification(isStatic ? "Tryb wydajności: Tło statyczne" : "Tło animowane włączone", "info");
-    });
 }
 
 // ============================================================

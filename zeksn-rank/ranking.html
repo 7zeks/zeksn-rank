@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking Filmów - Tylko Ranking</title>
+    
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +14,13 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ranking.css">
     <link rel="icon" type="image/x-icon" href="xd.ico">
+    <script>
+    // Błyskawiczna blokada szumu zanim załaduje się reszta strony
+    if (localStorage.getItem('staticBg') === 'true') {
+        document.documentElement.classList.add('static-bg-preload');
+        document.write('<style>body { background-color: #090A0F !important; }</style>');
+    }
+</script>
 </head>
 
 <body class="ranking-page">
@@ -98,6 +106,7 @@
         <div class="search-container">
             <div class="search-wrapper">
                 <input type="text" id="searchInput" class="search-input" placeholder="Szukaj filmu lub serialu...">
+                <button id="searchClearBtn" class="search-clear-btn" title="Wyczyść">✕</button>
             </div>
         </div>
 

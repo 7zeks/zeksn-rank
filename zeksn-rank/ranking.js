@@ -383,10 +383,27 @@ function getDynamicRatingColor(avg) {
 // Funkcja wyszukiwarki
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('searchClearBtn');
+    
     if (!searchInput) return;
+    
     searchInput.addEventListener('keyup', () => {
-        applyFiltersAndRender(); // Zamiast ręcznie filtrować, odpala główną rurę
+        // Pokaż krzyżyk, jeśli jest tekst. Ukryj, gdy pusto.
+        if (clearBtn) {
+            clearBtn.style.display = searchInput.value.length > 0 ? 'block' : 'none';
+        }
+        applyFiltersAndRender(); // Odpala główną rurę filtrowania
     });
+
+    // Akcja czyszczenia pola
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = ''; // Czyści pole
+            clearBtn.style.display = 'none'; // Chowa krzyżyk
+            applyFiltersAndRender(); // Odświeża listę filmów
+            searchInput.focus(); // Zostawia kursor w polu, żeby można było od razu pisać
+        });
+    }
 }
 
 // Uruchomienie, gdy strona jest gotowa
@@ -593,10 +610,29 @@ async function saveOnPageRating(itemId, user) {
 
 // Funkcja usuwania oceny użytkownika
 async function deleteUserRating(itemId, user) {
-    if (confirm(`Czy na pewno chcesz usunąć ocenę użytkownika ${user}?`)) {
-        await dbRef.child(itemId).child('ratings').child(user).remove();
-        showNotification(`Usunięto ocenę użytkownika ${user}`, "success");
-    }
+    // 1. Usuwamy ocenę (i opcjonalnie notatkę) z bazy natychmiast
+    await dbRef.child(itemId).child('ratings').child(user).remove();
+    await dbRef.child(itemId).child('notes').child(user).remove();
+    
+    // 2. Przeliczamy i aktualizujemy średnią ocenę (avgRating) w tle
+    dbRef.child(itemId).once('value', snap => {
+        const data = snap.val();
+        if (data && data.ratings && Object.keys(data.ratings).length > 0) {
+            const arr = Object.values(data.ratings).map(r => parseFloat(r));
+            const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+            dbRef.child(itemId).update({ avgRating: avg.toFixed(1) });
+        } else {
+            // Jeśli usunięto ostatnią ocenę ogólną, zerujemy średnią
+            dbRef.child(itemId).update({ avgRating: 0 });
+        }
+    });
+    
+    // 3. Płynne ukrycie usuniętego wiersza w modalu
+    const ratingRow = document.getElementById(`rating-item-${user}`);
+    if (ratingRow) ratingRow.remove();
+
+    // 4. Ładne powiadomienie z Twojego systemu
+    showNotification(`Usunięto ocenę użytkownika ${user}`, "success");
 }
 
 // ==========================================

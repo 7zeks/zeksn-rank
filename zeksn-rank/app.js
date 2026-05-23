@@ -45,6 +45,8 @@ let isAdmin = false;
 let isLoggedIn = false;
 let loggedGuestName = "";
 const fallbackUsers = ["zeku", "pierozek"];
+const settingsRef = firebase.database().ref("settings");
+let isRestreamLocked = false;
 
 // ----------------------------
 // INICJALIZACJA APLIKACJI
@@ -58,6 +60,7 @@ function initApp() {
     setupThemeChanger();
     setupTopBarSettings();
     setupScrollButtons();
+    setupRestreamLock();
 
     if (isMainPage) {
         console.log('>>> Setup Index');
@@ -174,6 +177,8 @@ function setupAuth() {
                 // Zdejmujemy ewentualną blokadę z dropdowna
                 const userSelect = document.getElementById("userSelect");
                 if (userSelect) userSelect.disabled = false;
+                injectAdminRestreamToggle(); 
+                applyRestreamAccess();
             } else {
                 // TRYB GOŚCIA (Zablokowany)
                 isAdmin = false;
@@ -182,6 +187,8 @@ function setupAuth() {
                 loggedGuestName = user.displayName.split(' ')[0].toLowerCase();
                 showNotification(`Witaj, ${loggedGuestName}!`, 'success');
                 usersRef.child(loggedGuestName).set(true);
+                removeAdminRestreamToggle(); 
+                applyRestreamAccess();
 
                 // Automatyczne ustawienie i ZABLOKOWANIE wyboru użytkownika
                 setTimeout(() => {
@@ -212,6 +219,8 @@ function setupAuth() {
                 userSelect.disabled = false;
                 userSelect.style.opacity = "1";
             }
+            removeAdminRestreamToggle(); // <--- DODANE
+            applyRestreamAccess();
         }
     });
 }
@@ -1034,3 +1043,83 @@ function setupAutocomplete() {
 document.addEventListener('DOMContentLoaded', () => {
     setupAutocomplete();
 });
+
+// ============================================================
+// SEKCJA: KONTROLA DOSTĘPU DO RESTREAM
+// ============================================================
+
+function setupRestreamLock() {
+    // Nasłuchujemy zmiany stanu blokady w Firebase
+    settingsRef.child("restreamLocked").on("value", snapshot => {
+        isRestreamLocked = snapshot.val() || false;
+        applyRestreamAccess();
+        updateLockIcon();
+    });
+}
+
+function applyRestreamAccess() {
+    // 1. Zabezpieczenie przycisków i linków w UI
+    const restreamLinks = document.querySelectorAll('a[href="restream.html"]');
+
+    restreamLinks.forEach(link => {
+        if (isRestreamLocked && !isAdmin) {
+            // Blokada dla Gości
+            link.style.opacity = "0.3";
+            link.style.cursor = "not-allowed";
+            link.onclick = (e) => {
+                e.preventDefault();
+                showNotification("🔒 Dostęp do Restream jest obecnie zablokowany", "error");
+            };
+        } else {
+            // Przywrócenie dla Admina lub gdy odblokowane
+            link.style.opacity = "1";
+            link.style.cursor = "pointer";
+            link.onclick = null;
+        }
+    });
+
+    // 2. Twarde wyrzucenie, jeśli nie-admin jest już na zablokowanej stronie
+    if (isRestreamPage && isRestreamLocked && !isAdmin) {
+        window.location.replace("index.html");
+    }
+}
+
+function injectAdminRestreamToggle() {
+    if (!isAdmin) return;
+    const menu = document.getElementById('settingsMenu');
+    
+    // Zapobiegamy wielokrotnemu dodaniu przycisku
+    if (!menu || document.getElementById('restreamLockBtn')) return;
+
+    const divider = document.createElement('div');
+    divider.className = 'menu-divider admin-lock-element';
+
+    const lockBtn = document.createElement('button');
+    lockBtn.className = 'menu-item admin-lock-element';
+    lockBtn.id = 'restreamLockBtn';
+    lockBtn.title = 'Zablokuj/Odblokuj dostęp do Restream';
+    lockBtn.innerHTML = `<span class="menu-icon" id="restreamLockIcon"></span>`;
+
+    lockBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsRef.child("restreamLocked").set(!isRestreamLocked);
+    });
+
+    menu.appendChild(divider);
+    menu.appendChild(lockBtn);
+    updateLockIcon();
+}
+
+function removeAdminRestreamToggle() {
+    document.querySelectorAll('.admin-lock-element').forEach(el => el.remove());
+}
+
+function updateLockIcon() {
+    const icon = document.getElementById('restreamLockIcon');
+    if (!icon) return;
+
+    // Czerwona zamknięta kłódka / Zielona otwarta
+    icon.innerHTML = isRestreamLocked
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+}

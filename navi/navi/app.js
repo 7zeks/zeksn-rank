@@ -154,7 +154,7 @@ updateCarousel();
 
 const moduleLinks = [
     '../Przecho/index.html',     // Karta 0: Dropsite
-    '../zeksn-rank/index.html',  // Karta 1: zk`sn rank
+    'https://ukez.vercel.app/',  // Karta 1: zk`sn rank
     '../matches/index.html',      // Karta 2: zk`ns analysis
     '../fireplace/index.html'     // Karta 3: fireplace
 ];

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Filmów - Tylko Ranking</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ranking.css">
+    <link rel="icon" type="image/x-icon" href="xd.ico">
+</head>
+
+<body class="ranking-page">
+    <canvas id="fluid-canvas"></canvas>
+    <div class="content content--canvas"></div>
+
+    <div class="theme-switcher">
+        <div class="theme-dot" data-theme="original" style="--dot-color: #8b5cf6;" title="Oryginalny"></div>
+        <div class="theme-dot" data-theme="blue" style="--dot-color: #00d4ff;" title="Blue"></div>
+        <div class="theme-dot" data-theme="green" style="--dot-color: #10b981;" title="Green"></div>
+        <div class="theme-dot" data-theme="red" style="--dot-color: #ef4444;" title="Red"></div>
+        <div class="theme-dot" data-theme="orange" style="--dot-color: #f97316;" title="Orange"></div>
+        <div class="theme-dot" data-theme="purple" style="--dot-color: #d946ef;" title="Pink"></div>
+        <div class="theme-dot" data-theme="white" style="--dot-color: #ffffff;" title="White"></div>
+    </div>
+
+    <div class="container">
+
+        <div class="ambient-bg">
+            <div class="glow glow-1"></div>
+            <div class="glow glow-2"></div>
+        </div>
+
+        <header class="top-bar">
+            <a href="javascript:history.back()" class="glass-btn btn-back" title="Wstecz">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+            </a>
+        
+            <div class="score-pill">
+                <span class="star-icon">✨</span>
+                <span class="score-value">zk</span>
+            </div>
+        
+            <div class="right-group">
+                <a href="index.html" class="glass-btn" title="Strona Główna">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </a>
+        
+                <a href="ranking.html" class="glass-btn" title="Ranking">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                        <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                    </svg>
+                </a>
+        
+                <a href="restream.html" class="glass-btn" title="Restream">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </a>
+        
+                <div class="settings-container">
+    <button class="glass-btn btn-settings" id="settingsToggle" title="Ustawienia">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+    <div class="settings-menu" id="settingsMenu">
+        <button class="menu-item" id="bgToggle" title="Przełącz tło (Animowane/Statyczne)">
+            <span class="menu-icon" id="bgIcon"></span>
+        </button>
+        
+        <div class="menu-divider"></div>
+        
+        <button class="menu-item" id="themeToggle" title="Przełącz motyw (Jasny/Ciemny)">
+            <span class="menu-icon" id="themeIcon"></span>
+        </button>
+    </div>
+</div>
+        </header>
+
+
+        <section class="table-container"
+            style="background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border: none !important; box-shadow: none !important;">
+            <div class="ranking-header-row">
+                <div class="col-rank">RANK</div>
+                <div class="col-change">CHANGE</div>
+                <div class="col-team">FILM / SERIAL</div>
+                <div class="col-pf">OCENA</div>
+            </div>
+            <div id="rankingTilesContainer"></div>
+        </section>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/noise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/util.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/crnacura/AmbientCanvasBackgrounds/js/swirl.js"></script>
+
+    <script src="fluid.js">
+    </script>
+    <script src="app.js"></script>
+
+</body>
+
+</html>

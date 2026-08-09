@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>campfire</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-blur"></div>
+    <div class="bg-main"></div>
+    <div class="vignette"></div>
+    <div class="bg-layer bg-blur"></div>
+    <div class="bg-layer bg-main"></div>
+
+    <div id="world"></div>
+
+    <div id="inputBubble" class="command-center minimized">
+    <div class="bubble-header" id="bubbleHeader">
+        <span>campfire</span>
+        <button id="toggleBtn">□</button> 
+    </div>
+    <div class="bubble-content collapsed" id="bubbleContent">
+        <textarea id="messageInput" placeholder="Napisz swoją myśl..." maxlength="150"></textarea>
+        <button id="sendBtn">send</button>
+    </div>
+</div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

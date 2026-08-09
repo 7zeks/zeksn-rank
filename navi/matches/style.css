@@ -1,0 +1,1096 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+body {
+    /* 1. Główny, ciemny kolor tła bazowego */
+    background-color: #090A0F; 
+    
+    /* 2. Wielowarstwowe tło (poświaty + kropki) */
+    background-image: 
+        /* --- WARSTWY ŚWIATŁA (GŁĘBIA) --- */
+        /* Jasnomiętowa poświata z lewej strony */
+        radial-gradient(circle at 20% 50%, rgba(196, 231, 212, 0.15) 0%, transparent 50%),
+        /* Jasnomiętowa poświata z prawej strony (wyżej) */
+        radial-gradient(circle at 80% 20%, rgba(196, 231, 212, 0.1) 0%, transparent 40%),
+        /* Ciemnozielona poświata z dołu */
+        radial-gradient(circle at 50% 100%, rgba(89, 168, 41, 0.08) 0%, transparent 50%),
+        /* Delikatny gradient liniowy przełamujący płaskość */
+        linear-gradient(135deg, rgba(20, 30, 48, 0.4) 0%, rgba(15, 20, 30, 0) 100%),
+        
+        /* --- WARSTWY KROPEK (PATTERN) --- */
+        /* Drobne, gęstsze białawe kropki o wielkości 1px */
+        radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        /* Nieco większe (2px), rzadsze miętowe kropki */
+        radial-gradient(rgba(196, 231, 212, 0.08) 2px, transparent 2px);
+        
+    /* 3. Ustalenie rozmiarów */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 30px 30px, 80px 80px;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+    background-attachment: fixed;
+    
+    /* 4. Zachowane właściwości układu z oryginalnego pliku (Flexbox i pozycjonowanie) */
+    margin: 0;
+    min-height: 100vh;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* PSEUDOELEMENT TWORZĄCY SIATKĘ W TLE */
+body::before {
+    content: "";
+    position: absolute;
+    width: 2560px;
+    height: 1259px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0px;
+    mix-blend-mode: overlay;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+    z-index: 0;
+    opacity: 0.5;
+    pointer-events: none; 
+    background-image: url('data:image/svg+xml;utf8,<svg width="2560" height="1260" viewBox="0 0 2560 1260" fill="none" xmlns="http://www.w3.org/2000/svg"><g style="mix-blend-mode:overlay"><line x1="54.9" y1="1.44262e-08" x2="54.8999" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="110.9" y1="1.44262e-08" x2="110.9" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="165.3" y1="1.44262e-08" x2="165.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="221.3" y1="1.44262e-08" x2="221.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="275.7" y1="1.44262e-08" x2="275.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="331.7" y1="1.44262e-08" x2="331.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="386.1" y1="1.44262e-08" x2="386.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="442.1" y1="1.44262e-08" x2="442.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="496.5" y1="1.44262e-08" x2="496.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="552.5" y1="1.44262e-08" x2="552.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="606.9" y1="1.44262e-08" x2="606.9" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="662.9" y1="1.44262e-08" x2="662.9" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="717.3" y1="1.44262e-08" x2="717.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="773.3" y1="1.44262e-08" x2="773.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="827.7" y1="1.44262e-08" x2="827.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="883.7" y1="1.44262e-08" x2="883.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="938.1" y1="1.44262e-08" x2="938.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="994.1" y1="1.44262e-08" x2="994.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1048.5" y1="1.44262e-08" x2="1048.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1104.5" y1="1.44262e-08" x2="1104.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1158.9" y1="1.44262e-08" x2="1158.9" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1214.9" y1="1.44262e-08" x2="1214.9" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1269.3" y1="1.44262e-08" x2="1269.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1325.3" y1="1.44262e-08" x2="1325.3" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1379.7" y1="1.44262e-08" x2="1379.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1435.7" y1="1.44262e-08" x2="1435.7" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1490.1" y1="1.44262e-08" x2="1490.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1546.1" y1="1.44262e-08" x2="1546.1" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1600.5" y1="1.44262e-08" x2="1600.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1656.5" y1="1.44262e-08" x2="1656.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1712.5" y1="1.44262e-08" x2="1712.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1768.5" y1="1.44262e-08" x2="1768.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1824.5" y1="1.44262e-08" x2="1824.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1880.5" y1="1.44262e-08" x2="1880.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1936.5" y1="1.44262e-08" x2="1936.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="1992.5" y1="1.44262e-08" x2="1992.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2048.5" y1="1.44262e-08" x2="2048.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2104.5" y1="1.44262e-08" x2="2104.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2160.5" y1="1.44262e-08" x2="2160.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2216.5" y1="1.44262e-08" x2="2216.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2272.5" y1="1.44262e-08" x2="2272.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2328.5" y1="1.44262e-08" x2="2328.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2384.5" y1="1.44262e-08" x2="2384.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2440.5" y1="1.44262e-08" x2="2440.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2496.5" y1="1.44262e-08" x2="2496.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2552.5" y1="1.44262e-08" x2="2552.5" y2="1248.6" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="35.8769" x2="-1.08353e-07" y2="35.8768" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="72.2942" x2="-1.08353e-07" y2="72.2941" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="107.671" x2="-1.08353e-07" y2="107.671" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="144.088" x2="-1.08353e-07" y2="144.088" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="179.465" x2="-1.08353e-07" y2="179.465" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="215.883" x2="-1.08353e-07" y2="215.883" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="251.26" x2="-1.08353e-07" y2="251.259" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="287.677" x2="-1.08353e-07" y2="287.677" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="323.054" x2="-1.08353e-07" y2="323.054" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="359.471" x2="-1.08353e-07" y2="359.471" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="394.848" x2="-1.08353e-07" y2="394.848" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="431.265" x2="-1.08353e-07" y2="431.265" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="466.642" x2="-1.08353e-07" y2="466.642" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="503.06" x2="-1.08353e-07" y2="503.059" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="538.436" x2="-1.08353e-07" y2="538.436" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="574.854" x2="-1.08353e-07" y2="574.854" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="610.231" x2="-1.08353e-07" y2="610.231" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="646.648" x2="-1.08353e-07" y2="646.648" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="682.025" x2="-1.08353e-07" y2="682.025" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="718.442" x2="-1.08353e-07" y2="718.442" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="753.819" x2="-1.08353e-07" y2="753.819" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="790.236" x2="-1.08353e-07" y2="790.236" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="825.613" x2="-1.08353e-07" y2="825.613" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="862.031" x2="-1.08353e-07" y2="862.03" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="897.407" x2="-1.08353e-07" y2="897.407" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="933.825" x2="-1.08353e-07" y2="933.825" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="969.202" x2="-1.08353e-07" y2="969.202" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1005.62" x2="-1.08353e-07" y2="1005.62" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1041" x2="-1.08353e-07" y2="1041" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1077.41" x2="-1.08353e-07" y2="1077.41" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1113.83" x2="-1.08353e-07" y2="1113.83" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1150.25" x2="-1.08353e-07" y2="1150.25" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1186.67" x2="-1.08353e-07" y2="1186.67" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1223.08" x2="-1.08353e-07" y2="1223.08" stroke="white" stroke-opacity="0.3"/><line x1="2560" y1="1259.5" x2="-1.08353e-07" y2="1259.5" stroke="white" stroke-opacity="0.3"/></g></svg>');
+}
+
+/* =========================================
+   GŁÓWNA KARTA (Z FIGMY 512x543)
+   ========================================= */
+.glass-panel {
+    position: relative;
+    width: 512px;
+    height: 543px; 
+    /* Subtelny gradient imitujący odbicie światła na szkle */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+    /* Jaśniejsza górna i lewa krawędź dla trójwymiarowości */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(40px); /* Zmniejszono z 75px dla lepszego kontrastu z tłem */
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 30px;
+    z-index: 2;
+    /* Głębszy cień na zewnątrz i delikatny wewnątrz */
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.5), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* Add fade-in animation */
+    animation: panelFadeIn 0.8s ease-out forwards;
+}
+
+@keyframes panelFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Neonowa poświata ukryta za kartą */
+.glass-panel::before {
+    content: "";
+    position: absolute;
+    top: 20%; left: 10%; right: 10%; bottom: 20%;
+    background: rgba(66, 104, 255, 0.15); /* Niebieskawo-fioletowe światło */
+    filter: blur(80px);
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+
+
+/* Kolorowe "Ellipsy" w tle szkła */
+.glow-bg {
+    position: absolute;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(40px);
+}
+.ellipse-1 { height: 77px; left: 87px; right: 86px; bottom: 15px; background: #3055E3; opacity: 0.6; }
+.ellipse-2 { height: 77px; left: 87px; right: 86px; top: 4px; background: #727272; opacity: 0.6; }
+.ellipse-3 { width: 131px; height: 85px; right: -44px; top: 123px; background: #080071; opacity: 0.56; }
+.ellipse-4 { width: 39px; height: 104px; left: -20px; top: 152px; background: #080071; opacity: 0.56; }
+
+/* Wrapper na treść */
+.card-content {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 41px;
+}
+
+h1 { 
+    font-family: 'Outfit', sans-serif;
+    font-size: 48px; 
+    font-weight: 600; 
+    line-height: 58px;
+    color: #FFFFFF;
+    margin-bottom: 0px; 
+}
+
+.subtitle { 
+    font-size: 13.1px;
+    color: #B3B3B3; 
+    margin-bottom: 35px; 
+}
+
+/* Układ drużyn: pionowy z VS po prawej */
+.matchup-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.team-select {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-right: 30px; 
+}
+
+.team-select label {
+    font-size: 17.3px;
+    color: #A0A0A0;
+    margin-bottom: 11px;
+}
+
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+input[type="text"] {
+    width: 100%;
+    height: 58px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1.387px solid rgba(255, 255, 255, 0.2);
+    border-radius: 11.096px;
+    padding: 16px;
+    color: #FFFFFF;
+    font-size: 18.5px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border-color: #4268FF;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* =========================================
+   STRUKTURA Z FIGMY (1:1 CO DO PIKSELA)
+   ========================================= */
+
+/* Heading 1 */
+.figma-h1-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
+    position: absolute;
+    width: 518px;
+    height: 58px;
+    left: -3px;  /* 1010px z Figmy minus 1013px pozycji karty */
+    top: 41px;   /* 307.5px z Figmy minus 266.5px pozycji karty */
+    z-index: 2;
+}
+
+.figma-h1-container h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 58px;
+    /* Metaliczny gradient tekstu */
+    background: linear-gradient(180deg, #FFFFFF 0%, #A0AEC0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
+    margin: 0;
+}
+
+/* Subtitle Container */
+.figma-subtitle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
+    position: absolute;
+    width: 518px;
+    height: 16px;
+    left: -3px;  /* 1010 - 1013 */
+    top: 99px;   /* 365.5 - 266.5 */
+    z-index: 3;
+}
+
+.figma-subtitle-container .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 13.1px;
+    line-height: 16px;
+    color: #B3B3B3;
+}
+
+/* Container (Gospodarze + VS Row) */
+.figma-row-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 34.6749px 0px;
+    gap: 20.8px;
+    isolation: isolate;
+    position: absolute;
+    width: 425px;
+    height: 160px;
+    left: 43px;  /* 1056 - 1013 */
+    top: 123px;  /* 389.5 - 266.5 */
+    z-index: 5;
+}
+
+/* Container (Goście Col) */
+.figma-col-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    position: absolute;
+    width: 422.44px;
+    height: 90.16px;
+    left: 43px;  /* 1056 - 1013 */
+    top: 288px;  /* 554.5 - 266.5 */
+    z-index: 4;
+}
+
+/* Grupy Inputów (Szerokości) */
+.figma-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    height: 90.16px;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+.gospodarze-width { width: 419.95px; z-index: 0; }
+.goscie-width { width: 422.44px; z-index: 0; }
+
+.label-margin {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px 0px 11.096px;
+    width: 100%;
+    height: 32.1px;
+}
+
+.label-margin label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 17.3375px;
+    line-height: 21px;
+    color: #A0A0A0;
+}
+
+.autocomplete-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+input[type="text"] {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16.644px;
+    width: 100%;
+    height: 58.06px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1.387px solid rgba(255, 255, 255, 0.2);
+    border-radius: 11.096px;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 18.5858px;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+input[type="text"]:focus {
+    border-color: #4268FF;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 20px rgba(66, 104, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease;
+}
+
+input[type="text"]:focus::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+}
+
+input[type="text"]:focus {
+    border-color: #4268FF;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Znaczek VS  */
+.vs-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 13.87px;
+    position: absolute;
+    width: 49.74px;
+    height: 46.74px;
+    left: 370.1px;   
+    top: 135.83px;   
+    /* Efekt wypukłego szkła */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 25.174px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 15.5344px;
+    line-height: 19px;
+    color: #FFFFFF;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    z-index: 10;
+    flex: none;
+    order: 1;
+    opacity: 0.55;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.vs-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* PRZYCISK KALKULUJ (Bez zmian, ma dokładne pozycje) */
+#calculateBtn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 0px;
+    gap: 8px;
+    position: absolute;
+    width: 429px;
+    height: 56px;
+    left: 41px;
+    top: 466px;
+    background: linear-gradient(90deg, #113BE1 0%, #4268FF 50.48%, #4062E3 72.41%, #113BE1 100%);
+    border-radius: 11px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7; 
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600; 
+    font-size: 20px;
+    color: #FFFFFF;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    position: relative;
+    overflow: hidden;
+}
+
+#calculateBtn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+#calculateBtn:hover::before {
+    left: 100%;
+}
+
+#calculateBtn:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(17, 59, 225, 0.4);
+}
+
+#calculateBtn:active {
+    transform: translateY(-1px);
+}
+
+#calculateBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading spinner */
+#calculateBtn.loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #FFFFFF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Podpowiedzi wyszukiwania */
+.suggestions-list {
+    position: absolute;
+    top: 100%; /* Wyświetla się dokładnie pod inputem */
+    left: 0;
+    width: 100%;
+    background: rgba(15, 18, 46, 0.98); /* Bardziej solidne tło */
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 11px;
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999 !important; /* MUSI być wyżej niż wszystko inne w karcie */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: suggestionsFadeIn 0.2s ease forwards;
+}
+
+@keyframes suggestionsFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- POPRAWKA CURSORA DLA LOGO --- */
+.ticker-logo {
+    cursor: pointer; /* Teraz widać, że można klikać */
+}
+
+.suggestions-list li {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 2px 4px;
+}
+
+.suggestions-list li:hover {
+    background: rgba(66, 104, 255, 0.3);
+    transform: translateX(4px);
+}
+
+/* =========================================
+   PANEL WYNIKÓW (Nakładka na kartę)
+   ========================================= */
+.hidden {
+    display: none !important;
+}
+
+.results-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(21, 24, 46, 0.97);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 5%;
+    z-index: 20; /* Wyżej niż button i formularze */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    animation: resultsSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes resultsSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        backdrop-filter: blur(10px);
+    }
+}
+
+
+
+.matchup-names {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.percentages {
+    display: flex;
+    justify-content: space-between;
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.color-a { color: #5BC0FF; text-shadow: 0 0 10px rgba(91, 192, 255, 0.4); }
+.color-b { color: #FF5E8E; text-shadow: 0 0 10px rgba(255, 94, 142, 0.4); }
+
+.progress-container {
+    width: 100%;
+    height: 18px;
+    background: rgba(255, 94, 142, 0.3); 
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4268FF 0%, #5BC0FF 100%); 
+    width: 50%;
+    border-radius: 10px;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 10px rgba(91, 192, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.analysis-details {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.analysis-details h3 {
+    font-size: 14px;
+    margin-bottom: 20px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.02);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(66, 104, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.stat-row:hover::before {
+    left: 100%;
+}
+
+.stat-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #CBD5E1;
+    font-weight: 300;
+}
+
+.stat-val {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+/* =========================================
+   DOCK (Z prawej strony)
+   ========================================= */
+.custom-figma-dock {
+    position: absolute;
+    top: 50%; 
+    left: calc(50% + 620px); 
+    right: auto;
+    bottom: auto;
+    transform: translate(0, -50%) scale(0.79);
+    transform-origin: center left; 
+    z-index: 1000;
+    width: 366px; 
+    height: 143px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.custom-figma-dock:hover {
+    transform: translate(0, -50%) scale(0.85);
+}
+
+.custom-figma-dock svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none; 
+}
+
+.dock-links-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px; 
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.dock-link {
+    display: block;
+    width: 50px; 
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.dock-link:hover {
+    transform: scale(1.1) translateY(-5px);
+}
+
+/* =========================================
+   PASEK Z LOGAMI KLUBÓW (Zmniejszony + Jasny efekt)
+   ========================================= */
+.bottom-ticker {
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px; /* Zmniejszona wysokość z 99px na 64px dla smuklejszego wyglądu */
+    
+    /* Overlay + Border + Blur z Figmy */
+    background: rgba(15, 15, 25, 0.4);
+    border-top: 1.64px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12.3px);
+    -webkit-backdrop-filter: blur(12.3px);
+    z-index: 100;
+    
+    display: flex;
+    align-items: center; /* Idealne wyśrodkowanie w pionie */
+    overflow: hidden; 
+}
+
+/* Tekstura (Szum/Ziarno) nałożona na szkło */
+.bottom-ticker::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+    opacity: 0.08; 
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Kontener z animacją */
+.ticker-track {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Trzyma loga idealnie na środku paska */
+    padding: 0 26px; 
+    gap: 60px; /* Zbalansowany odstęp */
+    height: 100%;
+    width: max-content;
+    animation: scrollTicker 40s linear infinite; 
+}
+
+/* Zatrzymanie taśmy po najechaniu myszką */
+.ticker-track:hover {
+    animation-play-state: paused;
+}
+
+/* Pojedyncze logo klubu - JASNY/SREBRNY EFEKT */
+.ticker-logo {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    
+    /* Zmniejszyliśmy brightness z 250% na 160% */
+    filter: grayscale(100%) brightness(90%) contrast(0.9);
+    opacity: 0.45; /* Lekko zmniejszona przezroczystość, by lepiej wtopiły się w tło */
+    
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Po najechaniu myszką - powrót do pełnych kolorów */
+.ticker-logo:hover {
+    transform: scale(1.15);
+    filter: grayscale(0%) brightness(100%) contrast(1); 
+    opacity: 1; 
+    filter: drop-shadow(0 5px 15px rgba(255, 255, 255, 0.2));
+}
+
+/* Animacja przewijania paska */
+@keyframes scrollTicker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } 
+}
+
+/* =========================================
+   OPCJE ZAAWANSOWANE (Przełącznik w luce)
+   ========================================= */
+.advanced-options {
+    position: absolute;
+    top: 405px;
+    left: 50px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 5; /* Niższy z-index niż lista podpowiedzi */
+}
+
+.option-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #A0AEC0;
+    font-weight: 400;
+}
+
+/* Szklany Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    opacity: 0.57;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    transition: .4s;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #A0AEC0;
+    border-radius: 50%;
+    transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Fajny efekt "odbicia" */
+}
+
+input:checked + .slider {
+    background-color: rgba(66, 104, 255, 0.6);
+    border-color: rgba(66, 104, 255, 0.8);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2), 0 0 10px rgba(66, 104, 255, 0.3);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   STICKY NOTE (Styl macOS - Poprawione UI)
+   ========================================= */
+.sticky-note {
+    width: 300px;
+    height: 263px;
+    
+    position: fixed;
+    top: 50%;
+    right: 120px; 
+    transform: translateY(-50%) translateX(50px) scale(0.9);
+    
+    /* Zmniejszone opacity tła, żeby okno było ciemniejsze i lepiej wtapiało się w UI */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    backdrop-filter: blur(20px); /* Zwiększony blur dla ładniejszego szkła */
+    -webkit-backdrop-filter: blur(20px);
+    
+    /* Subtelniejsza ramka i dodany delikatny połysk na górze */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    z-index: 999;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    display: flex;
+    flex-direction: column;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sticky-note.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
+/* Pasek z przyciskami (macOS Header) */
+.mac-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Zwiększone marginesy od krawędzi */
+    padding: 16px 20px; 
+    /* Delikatna linia oddzielająca nagłówek od tekstu */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+}
+
+.mac-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.mac-btn:hover {
+    filter: brightness(0.85);
+    transform: scale(1.1);
+}
+
+.mac-btn.close {
+    background: #EE6A5F;
+    border: 0.5px solid #CE5347;
+}
+
+.mac-btn.minimize {
+    background: #F5BD4F;
+    border: 0.5px solid #D6A243;
+    cursor: grab; /* Kursor łapki */
+}
+
+/* Zamknięta łapka podczas przeciągania */
+.mac-btn.minimize:active {
+    cursor: grabbing;
+}
+
+.mac-btn.maximize {
+    background: #61C454;
+    border: 0.5px solid #58A942;
+}
+
+/* Miejsce na tekst */
+.sticky-body {
+    flex-grow: 1;
+    display: flex;
+    /* Równe, duże marginesy żeby tekst nie dotykał ramki */
+    padding: 16px 20px 20px 20px; 
+}
+
+.sticky-body textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #E2E8F0; /* Bardzo jasny szary, przyjemniejszy dla oka niż czysta biel */
+    font-family: 'Inter', sans-serif;
+    font-weight: 300; /* Lżejszy font dodaje elegancji */
+    font-size: 15px;
+    line-height: 1.6;
+    resize: none; 
+    outline: none;
+}
+
+.sticky-body textarea::placeholder {
+    color: rgba(255, 255, 255, 0.35); 
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .glass-panel {
+        width: 100%;
+        max-width: 512px;
+        height: auto;
+        min-height: 543px;
+    }
+    
+    .custom-figma-dock {
+        display: none; /* Hide dock on mobile */
+    }
+    
+    .sticky-note {
+        width: 280px;
+        right: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .glass-panel {
+        border-radius: 20px;
+    }
+    
+    .bottom-ticker {
+        height: 50px;
+    }
+    
+    .ticker-logo {
+        height: 30px;
+    }
+    
+    .sticky-note {
+        width: 250px;
+        transform: translateY(-50%) translateX(25px) scale(0.8);
+    }
+    
+    .sticky-note.active {
+        transform: translateY(-50%) translateX(0) scale(0.8);
+    }
+}
+
+/* ============================================================
+   KURSORY NIESTANDARDOWE
+   ============================================================ */
+
+/* 1. Domyślny kursor na wszystkich elementach */
+*, 
+html, 
+body, 
+canvas, 
+.container, 
+.content--canvas {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMjguNjMxNiIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNy42ODQyIiB5PSIyNi45NDczIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI5LjM2ODQxIiB5PSIyNS4yNjMyIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxMS4wNTI2IiB5PSIyMy41Nzg5IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxMi43MzY4IiB5PSIyMS44OTQ4IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNC40MjEiIHk9IjIzLjU3ODkiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE2LjEwNTIiIHk9IjI2Ljk0NzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjIxLjE1NzgiIHk9IjI2Ljk0NzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE5LjQ3MzYiIHk9IjIzLjU3ODkiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE3Ljc4OTQiIHk9IjIwLjIxMDQiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE5LjQ3MzYiIHk9IjIwLjIxMDQiIHdpZHRoPSI2LjczNjg0IiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0LjUyNjQiIHk9IjE4LjUyNjQiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjEyLjczNjgiIHk9IjYuNzM2ODIiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjExLjA1MjYiIHk9IjUuMDUyNzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjkuMzY4NDEiIHk9IjMuMzY4NDEiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcuNjg0MiIgeT0iMS42ODQzMyIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iMTQuNDIxIiB5PSI4LjQyMTE0IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNi4xMDUyIiB5PSIxMC4xMDUyIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNy43ODk0IiB5PSIxMS43ODk2IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxOS40NzM2IiB5PSIxMy40NzM2IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIyMS4xNTc4IiB5PSIxNS4xNTgiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjIyLjg0MjIiIHk9IjE2Ljg0MiIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iMTcuNzg5NCIgeT0iMzAuMzE1NyIgd2lkdGg9IjMuMzY4NDIiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTcuNjg0MiAyNi45NDc0VjMuMzY4NDFIOS4zNjg0MVY1LjA1MjYySDExLjA1MjZWNi43MzY4M0gxMi43MzY4VjguNDIxMDRIMTQuNDIxVjEwLjEwNTNIMTYuMTA1M1YxMS43ODk1SDE3Ljc4OTVWMTMuNDczN0gxOS40NzM3VjE1LjE1NzlIMjEuMTU3OVYxNi44NDIxSDIyLjg0MjFWMTguNTI2M0gyNC41MjYzVjIwLjIxMDVIMTcuNzg5NVYyMy41Nzg5SDE5LjQ3MzdWMjYuOTQ3NEgyMS4xNTc5VjMwLjMxNThIMTcuNzg5NVYyNi45NDc0SDE2LjEwNTNWMjMuNTc4OUgxNC40MjFWMjEuODk0N0gxMi43MzY4VjIzLjU3ODlIMTEuMDUyNlYyNS4yNjMxSDkuMzY4NDFWMjYuOTQ3NEg3LjY4NDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K") 6 0, default !important;
+}
+
+/* 2. Kursor pointer dla elementów klikalnych */
+a, 
+button, 
+select, 
+.theme-dot, 
+.nav-button, 
+.btn-option, 
+.btn-glow, 
+.crumb, 
+.restream-name-clickable,
+.row-icon,
+.icon-btn,
+.delete-btn,
+.modal-close,
+#loginTrigger,
+[data-cursor='pointer'] {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTguNzU3NjQgMjYuMTgxOVYzMC4wNjA3SDI0LjI3MjhWMjguMTIxM0gyNi4yMTIyVjI2LjE4MTlIMjguMTUxNlYxNS41MTUySDI2LjIxMjJWMTMuNTc1OEgyNC4yNzI4VjExLjYzNjRIMTQuNTc1OFYxLjkzOTQ1SDguNzU3NjRWMTMuNTc1OEgyLjkzOTQ1VjIyLjMwMzFINC44Nzg4NVYyNC4yNDI1SDYuODE4MjRWMjYuMTgxOUg4Ljc1NzY0WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE0LjU3NTggMTEuNTc1OEgxNi41MTUyVjE4LjM2MzZIMTQuNTc1OFYxMS41NzU4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTIyLjMzMzMgMTEuNTc1OEgyMC4zOTM5VjE4LjM2MzZIMjIuMzMzM1YxMS41NzU4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNC41NzU4IDBIOC43NTc1OFYxLjkzOTM5SDYuODE4MThWMTEuNjM2NEgyLjkzOTM5VjEzLjU3NThIMVYyMi4zMDNIMi45MzkzOVYyNC4yNDI0SDQuODc4NzlWMjYuMTgxOEg2LjgxODE4VjMwLjA2MDZIOC43NTc1OFYzMkgyNC4yNzI3VjMwLjA2MDZIMjYuMjEyMVYyOC4xMjEySDI4LjE1MTVWMjYuMTgxOEgzMC4wOTA5VjE1LjUxNTJIMjguMTUxNVYxMy41NzU4SDI2LjIxMjFWMTEuNjM2NEgyNC4yNzI3VjkuNjk2OTdIMTYuNTE1MlYxLjkzOTM5TDE0LjU3NTggMS45MzkzOVYwWk0xNC41NzU4IDEuOTM5MzlWMTEuNjM2NEgyNC4yNzI3VjEzLjU3NThIMjYuMjEyMVYxNS41MTUySDI4LjE1MTVWMjYuMTgxOEgyNi4yMTIxVjI4LjEyMTJIMjQuMjcyN1YzMC4wNjA2SDguNzU3NThWMjYuMTgxOEg2LjgxODE4VjI0LjI0MjRINC44Nzg3OVYyMi4zMDNIMi45MzkzOVYxMy41NzU4SDYuODE4MThWMTguNDI0Mkg4Ljc1NzU4VjEuOTM5MzlIMTQuNTc1OFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=") 8 0, pointer !important;
+}
+
+/* 3. Kursor tekstowy dla pól input */
+input, 
+textarea, 
+[data-cursor='text'] {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNy41IiB5PSIxLjUiIHdpZHRoPSI3IiBoZWlnaHQ9IjMiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIi8+CjxyZWN0IHg9IjE3LjUiIHk9IjEuNSIgd2lkdGg9IjciIGhlaWdodD0iMyIgZmlsbD0id2hpdGUiIHN0cm9rZT0iYmxhY2siLz4KPHJlY3QgeD0iNy41IiB5PSIyNy41IiB3aWR0aD0iNyIgaGVpZ2h0PSIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8cmVjdCB4PSIxNy41IiB5PSIyNy41IiB3aWR0aD0iNyIgaGVpZ2h0PSIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8cmVjdCB4PSIxNC41IiB5PSI0LjUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8L3N2Zz4K") 16 16, text !important;
+}
+

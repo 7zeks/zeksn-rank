@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Gastro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="roulette.css"> </head>
+<body>
+    <canvas id="fluid-canvas"></canvas>
+
+    <a href="index.html" class="back-btn">🏠 Wróć</a>
+
+    <div class="roulette-container">
+        <div class="roulette-screen">
+            <div class="glow-ring" style="border-color: #ff0055; box-shadow: 0 0 50px #ff0055;"></div>
+            <h2 style="color:rgba(255,255,255,0.7); margin-bottom:10px;">DZIŚ JEMY:</h2>
+            <h1 id="foodDisplay" style="font-size: 3.5rem;">???</h1>
+        </div>
+
+        <button id="spinBtn" class="spin-button" style="border-color: #ff0055; color: #ff0055;">LOSUJ SZAMĘ</button>
+    </div>
+
+    <script src="fluid.js"></script>
+    <script src="js/gastro.js"></script>
+</body>
+</html>

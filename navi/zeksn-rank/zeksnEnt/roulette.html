@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Akronim&family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="dashboard.css"> <link rel="stylesheet" href="roulette.css">   </head>
+<body>
+    
+    <canvas id="fluid-canvas"></canvas>
+
+    <a href="index.html" class="back-btn">🏠 Wróć</a>
+
+    <div class="roulette-container">
+        
+        <div class="roulette-screen">
+            <div class="glow-ring"></div>
+
+            <img id="moviePoster" src="" alt="Plakat filmu" class="movie-poster hidden">
+
+            <h1 id="movieDisplay">---</h1>
+            <div id="ratingDisplay" class="rating-badge hidden">0.0</div>
+        </div>
+
+        <div class="controls-panel">
+            <label class="toggle-switch">
+                <input type="checkbox" id="goodMoviesOnly" checked>
+                <span class="slider"></span>
+                <span class="label-text">(7.0+)</span>
+            </label>
+
+            <button id="spinBtn" class="spin-button">LOSUJ</button>
+        </div>
+
+        <div id="resultActions" class="result-actions hidden">
+            <a href="#" id="filmwebLink" target="_blank" class="action-btn fw">Search</a>
+            <button id="resetBtn" class="action-btn secondary">Again</button>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="fluid.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/roulette.js"></script>
+</body>
+</html>

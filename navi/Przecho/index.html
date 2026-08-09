@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropsite</title>
+    <link rel="icon" href="favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<a href="#" class="nav-logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+    </svg>
+    <span>Dropsite</span>
+</a>
+
+<div class="nav-right">
+    <ul class="nav-links">
+    <li><a href="#" class="nav-btn active" data-target="view-glowna">Główna</a></li>
+    <li><a href="#" class="nav-btn" data-target="view-funkcje">Funkcje</a></li>
+    <li><a href="#" class="nav-btn" data-target="view-cennik">Cennik</a></li>
+    <li><a href="#" class="nav-btn" data-target="view-kontakt">Kontakt</a></li>
+</ul>
+</div>
+
+<div id="app-views">
+    
+    <div id="view-glowna" class="view-section active">
+        
+        <div class="value-prop-section">
+            <div class="value-prop">
+                <h2 class="value-title">Bezpieczne przechowywanie plików</h2>
+                <p class="value-description">Przesyłaj pliki szybko i bezpiecznie. Otrzymaj natychmiastowy link do udostępniania. Brak limitów, pełna prywatność.</p>
+                <div class="value-features">
+                    <span class="feature-tag">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7.425 10.025C6.912 9.78 6.35 9.654 5.782 9.655C5.213 9.657 4.653 9.786 4.141 10.034C3.629 10.282 3.18 10.641 2.826 11.086C2.472 11.532 2.223 12.05 2.098 12.605C1.972 13.159 1.972 13.735 2.099 14.289C2.226 14.843 2.476 15.362 2.831 15.806C3.185 16.251 3.635 16.61 4.147 16.856C4.659 17.103 5.22 17.232 5.789 17.232M18.871 17.175C20.649 16.861 22 15.313 22 13.443C22 12.612 21.726 11.804 21.221 11.144C20.716 10.483 20.008 10.007 19.206 9.789C19.078 8.944 18.652 8.173 18.004 7.616C17.357 7.059 16.531 6.752 15.677 6.752C15.162 6.752 14.654 6.864 14.188 7.08"></path>
+                            <path d="M5.601 9.658C5.58 9.486 5.569 9.313 5.568 9.14C5.568 8.541 5.686 7.948 5.915 7.395C6.144 6.841 6.479 6.339 6.903 5.915C7.326 5.492 7.829 5.156 8.382 4.927C8.935 4.698 9.528 4.58 10.127 4.581C10.969 4.579 11.795 4.812 12.512 5.254C13.229 5.695 13.809 6.328 14.187 7.08C14.517 7.716 14.688 8.423 14.686 9.14M9.669 19.42C9.264 19.42 8.866 19.31 8.518 19.102C8.17 18.894 7.885 18.596 7.693 18.239C7.501 17.882 7.409 17.48 7.427 17.075C7.446 16.671 7.573 16.278 7.796 15.94C8.019 15.602 8.33 15.33 8.695 15.154C9.06 14.978 9.466 14.904 9.869 14.94C10.273 14.977 10.659 15.121 10.987 15.359C11.315 15.597 11.573 15.92 11.732 16.292H14.362L15.115 17.046L15.869 16.292H16.559L17.155 17.175L16.558 18.059H11.732C11.559 18.462 11.271 18.807 10.905 19.049C10.538 19.29 10.108 19.419 9.669 19.42Z"></path>
+                            <path d="M9.246 17.857C9.592 17.857 9.872 17.577 9.872 17.232C9.872 16.886 9.592 16.606 9.246 16.606C8.901 16.606 8.621 16.886 8.621 17.232C8.621 17.577 8.901 17.857 9.246 17.857Z"></path>
+                        </svg>
+                        Bezpieczne
+                    </span>
+                    <span class="feature-tag">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.097 16.305H21.75C21.75 13.719 20.723 11.239 18.894 9.41C17.066 7.582 14.586 6.555 12 6.555C9.414 6.555 6.934 7.582 5.106 9.41C3.277 11.239 2.25 13.719 2.25 16.305H3.904"></path>
+                            <path d="M18.957 16.305C18.957 14.459 18.224 12.69 16.919 11.385C15.615 10.081 13.845 9.348 12 9.348M15.817 16.305C15.817 15.292 15.414 14.322 14.699 13.606C13.983 12.89 13.012 12.488 12 12.488"></path>
+                            <path d="M12 17.446C12.63 17.446 13.141 16.935 13.141 16.305C13.141 15.674 12.63 15.164 12 15.164C11.37 15.164 10.859 15.674 10.859 16.305C10.859 16.935 11.37 17.446 12 17.446Z"></path>
+                            <path d="M12 15.164V7.393"></path>
+                        </svg>
+                        Szybkie
+                    </span>
+                    <span class="feature-tag">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19.25 2.75H4.75C4.22 2.75 3.711 2.961 3.336 3.336C2.961 3.711 2.75 4.22 2.75 4.75V19.25C2.75 19.78 2.961 20.289 3.336 20.664C3.711 21.039 4.22 21.25 4.75 21.25H19.25C19.78 21.25 20.289 21.039 20.664 20.664C21.039 20.289 21.25 19.78 21.25 19.25V4.75C21.25 4.22 21.039 3.711 20.664 3.336C20.289 2.961 19.78 2.75 19.25 2.75Z"></path>
+                            <path d="M4.664 14.864L5.882 9.136L8.459 14.864L9.677 9.136M14.645 14.237C14.899 14.694 15.303 14.864 15.916 14.864H16.764C17.554 14.864 18.329 14.224 18.497 13.435L18.498 13.429C18.666 12.64 18.162 12 17.373 12H16.438C15.648 12 15.143 11.36 15.311 10.57C15.479 9.777 16.258 9.136 17.05 9.136H17.893C18.506 9.136 18.91 9.306 19.164 9.763M10.868 12H12.73M10.259 14.864L11.477 9.136H14.341"></path>
+                        </svg>
+                        Bez limitów
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="upload-container" id="uploadBox">
+                <header class="upload-header">
+                    <h1>Dropsite</h1>
+                    <p>Wybierz czas przechowywania i prześlij swój plik</p>
+                </header>
+
+                <div class="dropzone" id="dropzone">
+                    <svg class="upload-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    
+                    <div class="drop-text">Wybierz plik lub przeciągnij i upuść tutaj</div>
+                    <div class="drop-subtext">Wszystkie formaty</div>
+                    
+                    <button class="btn-select">Wybierz plik</button>
+                    <input type="file" id="fileInput" aria-label="Wybierz plik do wgrania">
+                </div>
+
+                <div class="file-status-box" id="fileStatusBox">
+                    <div class="fs-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.6335 20.9654C19.8587 20.9654 20.0818 20.921 20.2899 20.8348C20.498 20.7486 20.6871 20.6222 20.8464 20.4629C21.0057 20.3037 21.1321 20.1146 21.2183 19.9064C21.3045 19.6983 21.3488 19.4753 21.3488 19.25C21.3488 19.0248 21.3045 18.8017 21.2183 18.5936C21.1321 18.3855 21.0057 18.1964 20.8464 18.0371C20.6871 17.8778 20.498 17.7514 20.2899 17.6652C20.0818 17.579 19.8587 17.5347 19.6335 17.5347C19.1785 17.5347 18.7422 17.7154 18.4206 18.0371C18.0989 18.3588 17.9181 18.7951 17.9181 19.25C17.9181 19.705 18.0989 20.1413 18.4206 20.4629C18.7422 20.7846 19.1785 20.9654 19.6335 20.9654V20.9654Z" fill="#C4E7D4" fill-opacity="0.8"/>
+                            <path d="M28.2079 28.9703C28.2079 29.5769 27.967 30.1586 27.538 30.5875C27.1091 31.0165 26.5274 31.2574 25.9208 31.2574H16.7723C16.1657 31.2574 15.584 31.0165 15.155 30.5875C14.7261 30.1586 14.4852 29.5769 14.4852 28.9703V15.2475C14.4852 14.6409 14.7261 14.0592 15.155 13.6303C15.584 13.2014 16.1657 12.9604 16.7723 12.9604H23.0619L28.2079 18.1064V28.9703ZM16.7723 14.104C16.469 14.104 16.1781 14.2244 15.9637 14.4389C15.7492 14.6534 15.6287 14.9442 15.6287 15.2475V26.6832L18.172 24.1399C18.2621 24.05 18.3797 23.9927 18.5061 23.9772C18.6324 23.9616 18.7604 23.9887 18.8696 24.0541L21.3465 25.5396L23.8132 22.086C23.8615 22.0185 23.9239 21.9623 23.996 21.9214C24.0682 21.8804 24.1484 21.8556 24.2311 21.8488C24.3138 21.8419 24.397 21.8532 24.4749 21.8817C24.5528 21.9102 24.6236 21.9554 24.6823 22.014L27.0644 24.396V18.1064H24.7772C24.3223 18.1064 23.886 17.9257 23.5643 17.604C23.2426 17.2823 23.0619 16.846 23.0619 16.3911V14.104H16.7723Z" fill="#0F91D2" fill-opacity="0.8" transform="translate(-10, -10)"/>
+                        </svg>
+                    </div>
+                    <div class="fs-content">
+                        <div class="fs-header">
+                            <span id="fsName" class="fs-filename"></span>
+                            <span id="fsSizeOrProgress" class="fs-size"></span>
+                        </div>
+                        <div class="fs-track" id="fsTrack" hidden>
+                            <div class="fs-fill" id="fsProgressBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="options-container" aria-label="Wybór czasu przechowywania">
+                    <p class="options-label">Czas przechowywania:</p>
+                    <div class="options-radios">
+                        <label class="option-item">
+                            <input type="radio" name="duration" value="1d" checked>
+                            <span>1 Dzień</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="duration" value="30d">
+                            <span>30 Dni</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="duration" value="permanent">
+                            <span>Bez ustanku</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="uploadFile()" id="uploadBtn" class="btn-primary" disabled>
+                    <span class="btn-text">Upload</span>
+                    <div class="btn-ripple"></div>
+                </button>
+
+                <div id="status" class="status" aria-live="polite"></div>
+
+                <div id="successFlow" class="success-flow" hidden>
+                    <div class="success-header">
+                        <h3>Plik przesłany</h3>
+                    </div>
+                    
+                    <div class="success-link-box">
+                        <a href="#" id="finalLink" target="_blank" class="clickable-link">https://link...</a>
+                    </div>
+
+                    <div class="success-actions">
+                        <button class="btn-secondary" onclick="copyToClipboard()">
+                            <span class="btn-icon"></span>
+                            Kopiuj link
+                        </button>
+                        <button class="btn-secondary" onclick="shareLink()">
+                            <span class="btn-icon"></span>
+                            Udostępnij
+                        </button>
+                        <button class="btn-secondary" onclick="resetUpload()">
+                            <span class="btn-icon"></span>
+                            Wgraj nowy
+                        </button>
+                    </div>
+                    <div class="success-tips">
+                        <p>💡 <strong></strong> Link jest aktywny przez wybrany okres czasu</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-funkcje" class="view-section" hidden>
+        <div class="main-wrapper">
+            <div class="upload-container info-panel">
+                <header class="upload-header">
+                    <h1>Funkcje</h1>
+                    <p>Dlaczego warto z nami przechowywać pliki?</p>
+                </header>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>🚀 Błyskawiczny Upload</h3>
+                        <p>Infrastruktura oparta na Cloudflare R2 gwarantuje maksymalną prędkość z każdego miejsca na świecie.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🔒 Pełna Prywatność</h3>
+                        <p>Pliki są automatycznie usuwane po wybranym czasie. Nie śledzimy pobrań ani nie udostępniamy danych.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🎬 Stworzone dla Mediów</h3>
+                        <p>Zoptymalizowane odtwarzacze wideo i podgląd zdjęć bez utraty jakości.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-cennik" class="view-section" hidden>
+        <div class="main-wrapper" style="max-width: 700px;">
+            <div class="upload-container info-panel">
+                <header class="upload-header">
+                    <h1>Cennik</h1>
+                    <p>Proste i przejrzyste zasady</p>
+                </header>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h3>Darmowy</h3>
+                        <h2>0 zł <span style="font-size:14px; color:var(--text-muted)">/ zawsze</span></h2>
+                        <ul>
+                            <li>Pliki do 10 GB</li>
+                            <li>Wygasanie do 30 dni</li>
+                            <li>Standardowy transfer</li>
+                        </ul>
+                        <button class="btn-select" onclick="document.querySelector('[data-target=\'view-glowna\']').click()">Zacznij wgrywać</button>
+                    </div>
+                    <div class="pricing-card premium">
+                        <h3>Dropsite Pro</h3>
+                        <h2>15 zł <span style="font-size:14px; color:var(--text-muted)">/ m-c</span></h2>
+                        <ul>
+                            <li>Brak limitu wagi plików</li>
+                            <li>Pliki bezterminowe (permanentne)</li>
+                            <li>Priorytetowy transfer</li>
+                            <li>Brak kompresji dla wideo</li>
+                        </ul>
+                        <button class="btn-primary" style="padding: 12px; font-size: 14px;">Wkrótce</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-kontakt" class="view-section" hidden>
+        <div class="main-wrapper">
+            <div class="upload-container info-panel">
+                <header class="upload-header">
+                    <h1>Kontakt</h1>
+                    <p>Masz pytania?  Chcesz zgłosić plik?</p>
+                </header>
+                <div class="contact-box">
+                    <p>Skontaktuj się z administracją serwisu poprzez e-mail:</p>
+                    <a href="mailto:kontakt@dropsite.pl" class="clickable-link">kontakt@dropsite.pl</a>
+                    <p style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">Zgłoszenia dotyczące naruszeń regulaminu (DMCA) rozpatrujemy w ciągu 24 godzin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="storage-widget" id="storageWidget">
+    <button id="minimizeDot" class="minimize-dot" title="Zwiń/rozwiń dysk"></button>
+    <div class="storage-container">
+        <div class="storage-header">
+            <h2>Dysk</h2>
+            <div class="storage-stats">
+                <span id="diskUsedText">Ładowanie...</span>
+                <span class="storage-free" id="diskFreeText"></span>
+            </div>
+        </div>
+
+        <div class="storage-bar" id="storageBar"></div>
+
+        <div class="storage-legend">
+            <div class="legend-item"><span style="background: #C4E7D4;"></span> Zdjęcia</div>
+            <div class="legend-item"><span style="background: #FF4439;"></span> Wideo</div>
+            <div class="legend-item"><span style="background: #FFBC39;"></span> Dokumenty</div>
+            <div class="legend-item"><span style="background: #59A829;"></span> Archiwa</div>
+            <div class="legend-item"><span style="background: #48484A;"></span> Inne</div>
+        </div>
+    </div>
+</div>
+
+<button id="openModBtn" class="btn-mod-open">
+    <svg width="20" height="20" viewBox="0 0 31 31" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.7119 3.65738H10.2881C9.79387 3.6573 9.30832 3.78731 8.88025 4.03433C8.45218 4.28136 8.09667 4.6367 7.84944 5.06465L2.63756 14.0928C2.39054 14.5207 2.2605 15.0062 2.2605 15.5004C2.2605 15.9945 2.39054 16.48 2.63756 16.9079L7.84944 25.9354C8.09658 26.3635 8.45206 26.719 8.88014 26.9661C9.30822 27.2132 9.79381 27.3433 10.2881 27.3433H20.7119C21.206 27.3432 21.6915 27.2131 22.1195 26.9659C22.5474 26.7188 22.9028 26.3634 23.1499 25.9354L28.3624 16.9079C28.6095 16.4799 28.7396 15.9943 28.7396 15.5C28.7396 15.0057 28.6095 14.5202 28.3624 14.0921L23.1505 5.06465C22.9034 4.63658 22.5479 4.28111 22.1198 4.03397C21.6917 3.78683 21.2061 3.65737 20.7119 3.65738Z"></path>
+        <path d="M4.72754 20.5278H12.597M12.597 20.5278L16.5321 27.3427M12.597 20.5278L9.69464 15.5M12.597 10.4722M12.597 20.5278H18.4031L21.3054 15.5M25.2405 8.68455L21.3054 15.5M21.3054 15.5L25.2405 22.3155M21.3054 15.5L18.4031 10.4722H12.597M4.72754 10.4722H12.597M12.597 10.4722L16.5321 3.65674"></path>
+    </svg>
+    Panel
+</button>
+
+<div id="modModal" class="mod-modal" hidden>
+    <div class="mod-container">
+        <div class="mod-header">
+            <h2>Panel Administratora</h2>
+            <button id="closeModBtn" class="mod-close">&times;</button>
+        </div>
+
+        <div id="modFilesScreen">
+            <div class="mod-files-header">
+                <span>Wgrane pliki</span>
+                <button id="refreshModBtn" class="btn-select" style="margin: 0;">Odśwież</button>
+            </div>
+            <ul id="modFileList" class="mod-file-list"></ul>
+        </div>
+    </div>
+</div>
+
+<button id="loginBtn" class="btn-login">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+        <polyline points="10 17 15 12 10 7"></polyline>
+        <line x1="15" y1="12" x2="3" y2="12"></line>
+    </svg>
+    <span>Login</span>
+</button>
+
+<div id="loginModalWrap" class="mod-modal" hidden>
+    <div class="mod-container" style="max-width: 400px; padding: 40px;">
+        
+        <div class="mod-header" style="justify-content: center; position: relative; margin-bottom: 30px;">
+            <h2 style="font-size: 24px; font-weight: 700; color: var(--text-main);">Panel Logowania</h2>
+            <button id="closeLoginModal" class="mod-close" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">&times;</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="email" id="adminEmail" placeholder="Adres e-mail" class="dropsite-input" autocomplete="off">
+            <input type="password" id="adminPass" placeholder="Hasło" class="dropsite-input">
+            
+            <button id="doLoginBtn" class="btn-primary" style="margin-top: 10px; padding: 16px; border-radius: 14px;">
+                <span class="btn-text">Zaloguj się</span>
+                <div class="btn-ripple"></div>
+            </button>
+            
+            <p id="loginError" style="color: #FF4439; font-size: 13px; text-align: center; margin: 0; min-height: 18px; font-weight: 600;"></p>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

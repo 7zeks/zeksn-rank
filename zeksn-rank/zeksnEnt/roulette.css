@@ -1,0 +1,170 @@
+/* roulette.css */
+
+.back-btn {
+    position: fixed; top: 20px; left: 20px;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white; text-decoration: none; border-radius: 30px;
+    backdrop-filter: blur(5px); transition: all 0.3s; z-index: 100;
+}
+.back-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+.roulette-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+/* Nowy styl dla plakatu */
+.movie-poster {
+    max-width: 200px;  /* Ograniczamy szerokość */
+    max-height: 300px; /* Ograniczamy wysokość */
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); /* Neonowy glow */
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    
+    /* Animacja pojawiania się */
+    animation: fadeInPoster 1s ease forwards;
+    display: block;
+}
+
+/* Ukrywanie, gdy nie ma plakatu */
+.movie-poster.hidden {
+    display: none;
+}
+
+/* Dostosowanie tekstu, gdy jest plakat - żeby nie był za wielki */
+.has-poster #movieDisplay {
+    font-size: 2.5rem !important; /* Zmniejszamy tytuł, gdy widać okładkę */
+    margin-top: 10px;
+}
+
+@keyframes fadeInPoster {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* --- EKRAN --- */
+.roulette-screen {
+    position: relative;
+    margin-bottom: 50px;
+    padding: 20px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#movieDisplay {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 4rem;
+    color: white;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+    transition: all 0.1s;
+    line-height: 1.1;
+    max-width: 90vw;
+}
+
+/* Efekt rozmycia podczas losowania */
+.blur-effect {
+    filter: blur(4px);
+    opacity: 0.8;
+    transform: scale(0.98);
+}
+
+.rating-badge {
+    margin-top: 15px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 5px 15px;
+    border-radius: 10px;
+    background: #10b981; /* Green */
+    color: #000;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hidden { display: none !important; opacity: 0; }
+
+/* --- PRZYCISK SPIN --- */
+.spin-button {
+    font-family: 'Akronim', cursive;
+    font-size: 2.5rem;
+    padding: 15px 60px;
+    background: transparent;
+    color: var(--cyber-blue);
+    border: 2px solid var(--cyber-blue);
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 212, 255, 0.1);
+    transition: all 0.3s;
+    letter-spacing: 2px;
+}
+
+.spin-button:hover {
+    background: var(--cyber-blue);
+    color: #000;
+    box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.spin-button:active { transform: scale(0.95); }
+.spin-button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+/* --- PRZEŁĄCZNIK (CHECKBOX) --- */
+.controls-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.toggle-switch {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 20px;
+}
+.toggle-switch input { display: none; }
+.slider {
+    width: 40px; height: 20px; background: #333;
+    border-radius: 20px; position: relative; transition: 0.3s;
+}
+.slider::before {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s;
+}
+input:checked + .slider { background: var(--primary); }
+input:checked + .slider::before { transform: translateX(20px); }
+.label-text { font-size: 0.9rem; color: rgba(255,255,255,0.7); }
+
+/* --- AKCJE PO WYLOSOWANIU --- */
+.result-actions {
+    margin-top: 30px;
+    display: flex; gap: 15px;
+    animation: fadeIn 1s ease;
+}
+.action-btn {
+    padding: 12px 25px; border-radius: 8px; text-decoration: none;
+    font-weight: 600; cursor: pointer; border: none; font-size: 1rem;
+    transition: transform 0.2s;
+}
+.action-btn:hover { transform: translateY(-3px); }
+.fw { background: #f5c518; color: black; } /* Filmweb Yellow-ish */
+.secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+
+@keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+@keyframes fadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* Responsywność */
+@media (max-width: 768px) {
+    #movieDisplay { font-size: 2.5rem; }
+}

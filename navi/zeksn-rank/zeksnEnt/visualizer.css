@@ -1,0 +1,73 @@
+/* visualizer.css */
+
+.visualizer-container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.back-btn {
+    position: absolute; top: 20px; left: 20px;
+    padding: 10px 20px; background: rgba(255,255,255,0.1);
+    color: white; text-decoration: none; border-radius: 30px;
+    backdrop-filter: blur(5px); transition: 0.3s;
+}
+.back-btn:hover { background: var(--primary); }
+
+.player-box {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 20; /* Musi być nad canvasem */
+}
+
+.player-box h1 {
+    font-size: 3rem; color: var(--cyber-blue);
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    margin-bottom: 20px;
+    letter-spacing: 5px;
+}
+
+/* Ukrywamy domyślny brzydki input */
+input[type="file"] { display: none; }
+
+.upload-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, var(--primary), var(--cyber-blue));
+    color: white; border-radius: 50px;
+    cursor: pointer; font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 20px;
+}
+
+.upload-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+}
+
+#audioPlayer {
+    width: 300px;
+    margin-top: 20px;
+    opacity: 0.8;
+}
+
+#trackName {
+    margin-top: 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+}
+
+/* CANVAS WIZUALIZACJI */
+#audio-canvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%; /* Zajmuje dolną część ekranu */
+    pointer-events: none; /* Żeby nie blokował kliknięć */
+}

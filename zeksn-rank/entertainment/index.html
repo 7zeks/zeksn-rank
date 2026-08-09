@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entertainment Hub</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="dashboard.css">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0a0a14;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .subtle-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            /* Bardzo powolne i miękkie pojawienie się */
+            animation: gentleReveal 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        .subtle-text {
+            font-weight: 300;
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.15em;
+            margin: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Subtelny akcent kolorystyczny z Twojego motywu */
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: #8b5cf6;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            animation: breathe 4s infinite ease-in-out;
+        }
+
+        .subtle-subtext {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-top: 15px;
+        }
+
+        @keyframes gentleReveal {
+            0% { opacity: 0; filter: blur(10px); transform: translateY(10px); }
+            100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.3; box-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+            50% { opacity: 1; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+        }
+    </style>
+</head>
+<body class="preload-theme">
+    
+    <canvas id="fluid-canvas"></canvas>
+
+    <div class="subtle-container">
+        <h1 class="subtle-text">wip<span class="dot"></span></h1>
+        <p class="subtle-subtext"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.body.classList.remove('preload-theme');
+            }, 300);
+        });
+    </script>
+    
+    <script src="fluid.js"></script>
+</body>
+</html>

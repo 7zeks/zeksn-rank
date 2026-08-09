@@ -1,0 +1,100 @@
+:root {
+        --bg-color: #090A0F;
+        --panel-bg: rgba(20, 22, 30, 0.6);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --panel-border-highlight: rgba(255, 255, 255, 0.15);
+        
+        /* TUTAJ ZMIANA: Zastępujemy niebieski miętowym! 
+           (Zostawiamy nazwę zmiennej, żeby nie psuć reszty plików) */
+        --accent-blue: #C4E7D4; 
+        --accent-blue-hover: #A8DABF; /* Lekko ciemniejsza mięta przy najeździe */
+        --accent-glow: rgba(196, 231, 212, 0.3); /* Miętowa poświata */
+    
+    --success-green: #59A829;
+    --success-green-hover: #6bb033;
+    --success-glow: rgba(89, 168, 41, 0.3);
+    
+    --text-main: #FFFFFF;
+    --text-muted: #8A8F98;
+    
+    --radius-lg: 24px;
+    --radius-md: 14px;
+    --radius-sm: 8px;
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* --- Baza i Tło --- */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-color); /* Twoje ciemne tło */
+    
+    /* UPGRADE: Wiele warstw dla efektu głębi i dynamiki */
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(196, 231, 212, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(196, 231, 212, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 50% 100%, rgba(89, 168, 41, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(20, 30, 48, 0.4) 0%, rgba(15, 20, 30, 0) 100%),
+        radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(rgba(196, 231, 212, 0.08) 2px, transparent 2px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 30px 30px, 80px 80px;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+    
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* --- Globalne Animacje (Powiadomienia) --- */
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+@keyframes slideOutDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(30px); opacity: 0; } }
+
+/* ============================================================
+   KURSORY NIESTANDARDOWE
+   ============================================================ */
+
+/* 1. Domyślny kursor na wszystkich elementach */
+*, 
+html, 
+body, 
+canvas, 
+.container, 
+.content--canvas {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMjguNjMxNiIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNy42ODQyIiB5PSIyNi45NDczIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI5LjM2ODQxIiB5PSIyNS4yNjMyIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxMS4wNTI2IiB5PSIyMy41Nzg5IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxMi43MzY4IiB5PSIyMS44OTQ4IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNC40MjEiIHk9IjIzLjU3ODkiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE2LjEwNTIiIHk9IjI2Ljk0NzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjIxLjE1NzgiIHk9IjI2Ljk0NzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE5LjQ3MzYiIHk9IjIzLjU3ODkiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE3Ljc4OTQiIHk9IjIwLjIxMDQiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjMuMzY4NDIiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjE5LjQ3MzYiIHk9IjIwLjIxMDQiIHdpZHRoPSI2LjczNjg0IiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0LjUyNjQiIHk9IjE4LjUyNjQiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjEyLjczNjgiIHk9IjYuNzM2ODIiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjExLjA1MjYiIHk9IjUuMDUyNzMiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjkuMzY4NDEiIHk9IjMuMzY4NDEiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcuNjg0MiIgeT0iMS42ODQzMyIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iMTQuNDIxIiB5PSI4LjQyMTE0IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNi4xMDUyIiB5PSIxMC4xMDUyIiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxNy43ODk0IiB5PSIxMS43ODk2IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIxOS40NzM2IiB5PSIxMy40NzM2IiB3aWR0aD0iMS42ODQyMSIgaGVpZ2h0PSIxLjY4NDIxIiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIyMS4xNTc4IiB5PSIxNS4xNTgiIHdpZHRoPSIxLjY4NDIxIiBoZWlnaHQ9IjEuNjg0MjEiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjIyLjg0MjIiIHk9IjE2Ljg0MiIgd2lkdGg9IjEuNjg0MjEiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iMTcuNzg5NCIgeT0iMzAuMzE1NyIgd2lkdGg9IjMuMzY4NDIiIGhlaWdodD0iMS42ODQyMSIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTcuNjg0MiAyNi45NDc0VjMuMzY4NDFIOS4zNjg0MVY1LjA1MjYySDExLjA1MjZWNi43MzY4M0gxMi43MzY4VjguNDIxMDRIMTQuNDIxVjEwLjEwNTNIMTYuMTA1M1YxMS43ODk1SDE3Ljc4OTVWMTMuNDczN0gxOS40NzM3VjE1LjE1NzlIMjEuMTU3OVYxNi44NDIxSDIyLjg0MjFWMTguNTI2M0gyNC41MjYzVjIwLjIxMDVIMTcuNzg5NVYyMy41Nzg5SDE5LjQ3MzdWMjYuOTQ3NEgyMS4xNTc5VjMwLjMxNThIMTcuNzg5NVYyNi45NDc0SDE2LjEwNTNWMjMuNTc4OUgxNC40MjFWMjEuODk0N0gxMi43MzY4VjIzLjU3ODlIMTEuMDUyNlYyNS4yNjMxSDkuMzY4NDFWMjYuOTQ3NEg3LjY4NDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K") 6 0, default !important;
+}
+
+/* 2. Kursor pointer dla elementów klikalnych */
+a, 
+button, 
+select, 
+.theme-dot, 
+.nav-button, 
+.btn-option, 
+.btn-glow, 
+.crumb, 
+.restream-name-clickable,
+.row-icon,
+.icon-btn,
+.delete-btn,
+.modal-close,
+#loginTrigger,
+[data-cursor='pointer'] {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTguNzU3NjQgMjYuMTgxOVYzMC4wNjA3SDI0LjI3MjhWMjguMTIxM0gyNi4yMTIyVjI2LjE4MTlIMjguMTUxNlYxNS41MTUySDI2LjIxMjJWMTMuNTc1OEgyNC4yNzI4VjExLjYzNjRIMTQuNTc1OFYxLjkzOTQ1SDguNzU3NjRWMTMuNTc1OEgyLjkzOTQ1VjIyLjMwMzFINC44Nzg4NVYyNC4yNDI1SDYuODE4MjRWMjYuMTgxOUg4Ljc1NzY0WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE0LjU3NTggMTEuNTc1OEgxNi41MTUyVjE4LjM2MzZIMTQuNTc1OFYxMS41NzU4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTIyLjMzMzMgMTEuNTc1OEgyMC4zOTM5VjE4LjM2MzZIMjIuMzMzM1YxMS41NzU4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNC41NzU4IDBIOC43NTc1OFYxLjkzOTM5SDYuODE4MThWMTEuNjM2NEgyLjkzOTM5VjEzLjU3NThIMVYyMi4zMDNIMi45MzkzOVYyNC4yNDI0SDQuODc4NzlWMjYuMTgxOEg2LjgxODE4VjMwLjA2MDZIOC43NTc1OFYzMkgyNC4yNzI3VjMwLjA2MDZIMjYuMjEyMVYyOC4xMjEySDI4LjE1MTVWMjYuMTgxOEgzMC4wOTA5VjE1LjUxNTJIMjguMTUxNVYxMy41NzU4SDI2LjIxMjFWMTEuNjM2NEgyNC4yNzI3VjkuNjk2OTdIMTYuNTE1MlYxLjkzOTM5TDE0LjU3NTggMS45MzkzOVYwWk0xNC41NzU4IDEuOTM5MzlWMTEuNjM2NEgyNC4yNzI3VjEzLjU3NThIMjYuMjEyMVYxNS41MTUySDI4LjE1MTVWMjYuMTgxOEgyNi4yMTIxVjI4LjEyMTJIMjQuMjcyN1YzMC4wNjA2SDguNzU3NThWMjYuMTgxOEg2LjgxODE4VjI0LjI0MjRINC44Nzg3OVYyMi4zMDNIMi45MzkzOVYxMy41NzU4SDYuODE4MThWMTguNDI0Mkg4Ljc1NzU4VjEuOTM5MzlIMTQuNTc1OFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=") 8 0, pointer !important;
+}
+
+/* 3. Kursor tekstowy dla pól input */
+input, 
+textarea, 
+[data-cursor='text'] {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNy41IiB5PSIxLjUiIHdpZHRoPSI3IiBoZWlnaHQ9IjMiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIi8+CjxyZWN0IHg9IjE3LjUiIHk9IjEuNSIgd2lkdGg9IjciIGhlaWdodD0iMyIgZmlsbD0id2hpdGUiIHN0cm9rZT0iYmxhY2siLz4KPHJlY3QgeD0iNy41IiB5PSIyNy41IiB3aWR0aD0iNyIgaGVpZ2h0PSIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8cmVjdCB4PSIxNy41IiB5PSIyNy41IiB3aWR0aD0iNyIgaGVpZ2h0PSIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8cmVjdCB4PSIxNC41IiB5PSI0LjUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIzIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIvPgo8L3N2Zz4K") 16 16, text !important;
+}

@@ -1,0 +1,527 @@
+/* --- Pływający Widżet Dysku --- */
+.storage-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 100;
+    display: none; /* Domyślnie schowane dla gości */
+}
+
+body.is-admin .storage-widget {
+    display: block;
+}
+
+.storage-widget .storage-container {
+    width: 360px; /* Poszerzony kontener dla lepszego oddechu */
+    max-height: 400px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border);
+    border-top: 1px solid var(--panel-border-highlight);
+    padding: 36px 28px 28px; /* Zwiększone marginesy wewnętrzne */
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    
+    /* Płynne zwijanie (max-height i padding) */
+    transition: max-height 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                padding 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                border-radius 0.6s ease,
+                border-color 0.4s ease;
+}
+
+/* Zawartość kontenera płynnie znika przy zwijaniu */
+.storage-widget .storage-container > * {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+}
+
+/* Przycisk minimalizacji - szeroki pasek na górze */
+.minimize-dot {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%; /* Prawie cała szerokość kapsułki */
+    height: 15px; /* Grubość paska */
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    z-index: 110;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    padding: 0;
+}
+
+.minimize-dot:hover {
+    background: var(--accent-blue);
+    transform: translateX(-50%) scaleY(1.5); /* Lekko pogrubia się przy najeździe */
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* =========================================
+   STAN SCHOWANY (ZWINIĘTA PIGUŁKA) 
+   ========================================= */
+
+.storage-widget.minimized .storage-container {
+    max-height: 12px; /* Wysokość zwiniętej pigułki */
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 12px; /* Pełne, obłe zaokrąglenie */
+    border-color: rgba(196, 231, 212, 0.2); /* Lekki miętowy akcent na granicy */
+    cursor: pointer;
+}
+
+/* Ukrycie tekstów i wykresów w środku */
+.storage-widget.minimized .storage-container > * {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Rozciągnięcie kropki na cały zwinięty pasek (cały pasek działa jak przycisk powrotu) */
+.storage-widget.minimized .minimize-dot {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: transparent; /* Znika jako fizyczny pasek, przejmuje kliknięcia */
+    transform: none;
+    box-shadow: none;
+}
+
+/* Efekt najechania myszką na zwinięty pasek */
+.storage-widget.minimized:hover .storage-container {
+    border-color: var(--accent-blue);
+    background: rgba(20, 22, 30, 0.8);
+    box-shadow: 0 0 15px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================
+   ZAWARTOŚĆ DYSKU (NAGŁÓWEK, PASEK, LEGENDA) 
+   ========================================= */
+
+.storage-header { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; /* Zwiększony odstęp między tytułem a pojemnością */
+    margin-bottom: 28px; /* Zwiększony odstęp od paska postępu */
+}
+
+.storage-header h2 { 
+    margin: 0; 
+    font-size: 18px; 
+    font-weight: 600; 
+    color: var(--text-main); 
+}
+
+.storage-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#diskUsedText { color: var(--text-muted); }
+.storage-free { color: var(--text-main); }
+
+.storage-bar {
+    display: flex;
+    height: 14px; /* Grubszy i bardziej czytelny pasek */
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 30px; /* Zwiększony odstęp od legendy */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.storage-bar .segment { 
+    height: 100%; 
+    transition: width 1s cubic-bezier(0.25, 0.8, 0.25, 1); 
+}
+
+.storage-widget .storage-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px; /* Zwiększony odstęp w poziomie */
+    row-gap: 12px; /* Zwiększony odstęp w pionie */
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+}
+
+.legend-item:hover { color: var(--text-main); }
+
+.legend-item span {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 4px;
+    box-shadow: 0 0 6px currentColor;
+}
+
+/* =========================================
+   RESPONSYWNOŚĆ (TELEFONY I TABLETY) 
+   ========================================= */
+
+@media (max-width: 1200px) {
+    .storage-widget {
+        position: relative;
+        bottom: auto; right: auto;
+        width: 100%;
+        max-width: 520px;
+        margin-top: 20px;
+    }
+    
+    .storage-widget.minimized {
+        margin-top: 10px; /* Mniejszy odstęp gdy jest zminimalizowane */
+    }
+}
+
+/* --- Przycisk Moderacji --- */
+.btn-mod-open {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8A8F98;
+    padding: 10px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    transition: var(--transition-smooth);
+    z-index: 100;
+}
+
+.btn-mod-open svg {
+    transition: var(--transition-smooth);
+}
+
+.btn-mod-open:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: var(--accent-blue) !important; /* Wymusza zieloną/miętową otoczkę */
+    color: #FFFFFF !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-mod-open:hover svg {
+    color: var(--accent-blue) !important; /* Wymusza zielony kolor ikonki */
+}
+
+.btn-mod-open:hover {
+    color: var(--text-main);
+    border-color: var(--panel-border-highlight);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Panel Moderacji (Modal) --- */
+.mod-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    display: none; 
+}
+
+/* Animacja dla ciemnego tła */
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Subtelna animacja dla samego okna (delikatne powiększenie i wjazd w górę) */
+@keyframes popUpModal {
+    from { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(15px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+.mod-modal:not([hidden]) { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    animation: fadeInModal 0.3s ease-out forwards;
+}
+
+.mod-container {
+    background: #14161E;
+    border: 1px solid var(--panel-border-highlight);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 540px; 
+    padding: 30px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+    position: relative;
+    box-sizing: border-box;
+    /* Odpalenie animacji okna, gdy usunięto atrybut hidden z rodzica */
+    animation: popUpModal 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.mod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.mod-header h2 { margin: 0; font-size: 20px; }
+
+.mod-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.mod-close:hover { color: #FF4439; }
+
+.mod-files-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.mod-file-list {
+    list-style: none;
+    padding: 0; margin: 0;
+    max-height: 400px; 
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mod-file-list::-webkit-scrollbar { width: 6px; }
+.mod-file-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+.mod-file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition: var(--transition-smooth);
+    box-sizing: border-box;
+}
+
+.mod-file-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--panel-border);
+}
+
+.mod-file-main { display: flex; align-items: center; gap: 14px; overflow: hidden; flex-grow: 1; }
+
+.mod-preview-img {
+    width: 50px; 
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--panel-border);
+    transition: transform 0.2s ease; 
+}
+
+.mod-preview-img:hover {
+    transform: scale(1.1); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: zoom-in;
+}
+
+.mod-preview-icon {
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px; font-size: 22px;
+}
+
+.mod-file-info { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+
+.mod-file-name {
+    font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 280px; color: var(--text-main); text-decoration: none; 
+}
+
+.mod-file-name:hover { color: var(--accent-blue); cursor: pointer; }
+.mod-file-size { font-size: 11px; color: var(--text-muted); }
+
+.btn-delete {
+    background: rgba(255, 68, 57, 0.1); color: #FF4439;
+    border: 1px solid rgba(255, 68, 57, 0.3); padding: 7px 14px;
+    border-radius: 6px; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0; 
+}
+
+.btn-delete:hover { background: #FF4439; color: #FFF; }
+
+@media (max-width: 1200px) {
+    .storage-widget {
+        position: relative;
+        bottom: auto; right: auto;
+        width: 100%;
+        max-width: 520px;
+        margin-top: 20px;
+    }
+
+    .btn-mod-open {
+        position: relative;
+        bottom: auto; left: auto;
+        margin-top: 20px;
+    }
+}
+
+/* --- System Zakładek (SPA) --- */
+.view-section {
+    width: 100%;
+    animation: fadeInView 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.view-section[hidden] {
+    display: none !important;
+}
+
+@keyframes fadeInView {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#app-views {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- Style dla nowych paneli --- */
+.info-panel {
+    text-align: center;
+}
+
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.info-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--panel-border);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    text-align: left;
+    transition: var(--transition-smooth);
+}
+
+.info-card:hover {
+    border-color: var(--accent-blue);
+    background: rgba(196, 231, 212, 0.05);
+}
+
+.info-card h3 { margin: 0 0 8px 0; color: var(--text-main); font-size: 16px; }
+.info-card p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+/* Cennik */
+.pricing-grid {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pricing-card {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--panel-border);
+    padding: 30px 20px;
+    border-radius: var(--radius-md);
+    text-align: left;
+}
+
+.pricing-card.premium {
+    border-color: var(--accent-blue);
+    background: linear-gradient(180deg, rgba(196, 231, 212, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.pricing-card h3 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+.pricing-card h2 { margin: 0 0 20px 0; color: var(--text-main); font-size: 28px; }
+.pricing-card ul { padding: 0; margin: 0 0 24px 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.pricing-card ul li { color: var(--text-main); font-size: 13px; }
+.pricing-card ul li::before { content: "✓ "; color: var(--accent-blue); font-weight: bold; }
+
+/* Kontakt */
+.contact-box {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+    .pricing-grid { flex-direction: column; }
+}
+
+/* --- Pola wpisywania w Modalach (Logowanie) --- */
+.dropsite-input {
+    width: 100%;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 500;
+    box-sizing: border-box;
+    transition: var(--transition-smooth);
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.dropsite-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Stan aktywny (gdy wpisujesz) */
+.dropsite-input:focus {
+    border-color: var(--accent-blue);
+    background: rgba(196, 231, 212, 0.03); /* Bardzo delikatne miętowe tło */
+    box-shadow: 0 0 0 4px rgba(196, 231, 212, 0.1), inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Wyłączenie autouzupełniania z żółtym/białym tłem w przeglądarkach Chrome */
+.dropsite-input:-webkit-autofill,
+.dropsite-input:-webkit-autofill:hover, 
+.dropsite-input:-webkit-autofill:focus, 
+.dropsite-input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px #0e1015 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
